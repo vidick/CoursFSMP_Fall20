@@ -1,0 +1,345 @@
+\chapter{Testing a qubit}
+
+Recall the definition of a qubit from the first lecture: a qubit is a triple $(\mH,X,Z)$ of a Hilbert space $\mH$ and a pair of binary observables $X$ and $X$ on $\mH$ such that $\{X,Z\}=0$. Unfortunately, this definition is far from operational! The operator condition $\{X,Z\}=0$ is not something that we can hope to test based on experimental data alone. A simple reason for this is that in general we may only hope to observe expectation values for observables $W$ \emph{evaluated on a certain state} $\ket{\psi}$. While we may be able to prepare quite a range of states $\ket{\psi}$ using our experimental system, there is no hope that we can prepare \emph{all} possible states, which would be required for a full ``tomography'' of the observable.\footnote{The problem is distinct from the ``exponential scaling'' of the Hilbert space: here, the issue is that we simply can't expect that the experimentalist has the ability to probe the system's entire Hilbert space; in particular, we cannot impose any dimension bound \emph{a priori}.} 
+
+Today we tweak our definition to obtain a new one that we claim is truly ``operational,'' and we start exploring means of justifying this claim by showing how the definition can be ``tested''. 
+
+\section{Setup}
+
+Before we can make precise what we mean by ``operational'' we need to describe the framework in which we operate. This framework is inspired by an (idealized) perspective on how ``real-life'' experiments are made. An experiment can be formalized as an interactive process that involves two entities. One of the entities is the ``experimentalist'', whom we will refer to as the \emph{verifier}. The other entity is the ``quantum device'' on which the experiment is being performed. We will personify that device and refer to it as the \emph{prover}. (We motivate this terminology a little later.) 
+
+In an experiment the experimentalist generally has a model of how the device is expected to behave. This model can be used to predict the input-output behavior for the device, i.e.\ how it will react to various stimuli that the experimentalist might subject it to. For example, the device may be the combination of a laser, a sheet of paper with two slits on it, and a screen. This device takes inputs in $\{0,1\}^2$ that model the experimentalist's choice of slits to open ($0$ for 'open' and $1$ for 'closed'). The device's outputs are elements of, say, $\{R,G,B\}^{1000\times 1000}$, i.e. a $1000\times 1000$ pixel RGB image of the screen. The experimentalist's model makes a prediction for the device's output $pic_{ab}$ on each possible input $(a,b)$. In addition, if the experimentalist follows best practices in statistics they should decide \emph{a priori} on a \emph{scoring function} that determines, whenever the experiment is performed, a ``success score'' for the experimental outcome obtained. In our example we could use the normalized Hamming distance $10^{-6} d_H(pic_{ab},res_{ab})$ where for $a,b\in\{0,1\}$, $pic_{ab}$ is the ideal outcome and $res_{ab}$ the experimental outcome. The experimentalist would then repeatedly provide inputs $(a^{(i)},b^{(i)})$ to the device for $i=1,\ldots,$ chosen uniformly at random or with some smarter distribution (e.g. she could decide to never test the case $(1,1)$ corresponding to both slits closed), obtain a sequence of outputs $res^{(1)},res^{(2)},\ldots$, and return an averaged score that quantifies  agreement of the experiment with the theory. 
+
+Having set the stage with this rather loose description we make some important remarks: 
+\begin{enumerate}
+\item Our notion of interactive experiment substantially restricts the means by which the experimentalist may interact with the device. The experimentalist is allowed to provide classical inputs and obtain classical outputs in return. While there may be some semantics associated with the inputs and outputs (``which slit is open'', ``an RGB image'') when the experiment is performed there is no guarantee that these semantics correspond to any real-life phenomenon: inputs and outputs are strings of bits, nothing more. There is no a priori guarantee that the device has any number of ``slits'' that are being ``opened'' or ``closed''; maybe the mysterious device contains a student equipped with a textbook on quantum mechanics that allows her to calculate a reasonable outcome for the experiment. We emphasize that ``in real life'' the experimentalist will typically make a number of explicit and implicit assumptions about the system that is being tested and how it is accessed; here we aim to minimize such assumptions to the extreme.
+\item The insistence on classical inputs and outputs also means that we forbid the experimentalist from directly accessing the quantum state or measurements of the device. One of our basic goals is to devise tests that distinguish a classical device from a quantum one, and so we cannot assume any quantum access to it a priori. We will formalize this model of ``black-box access'' in more detail in the next section.
+\item Nevertheless, we will assume throughout that quantum mechanics is a correct theory, i.e.\ the device can always be modeled using the framework of quantum mechanics: it has a quantum state (that may be entangled with the environment) that it evolves unitarily and measures according to the Born rule. What we will aim to test is e.g.\ that the device \emph{does not} have a model in classical mechanics.
+\item Assuming correctness of quantum mechanics will not suffice. Make sure that you can convince yourself of the following statement: ``for any non-trivial experiment, i.e.\ such that for each possible input of the verifier there is at least one output that would be accepted, there is a classical device that is always accepted in the experiment.'' In other words, any meaningful experiment will need to place additional assumptions on the device: maybe the ``valid'' outcomes are hard to compute for a classical device, or maybe they are impossible to generate without entanglement or communication, etc. Are we contradicting our first item? It all depends on what the assumption is. We will aim for assumptions that require the least ``faith'' possible in the adequate execution of the experiment (i.e.\ the experimentalist's skills).
+\item We ended the description of the double slit experiment by suggesting that the experimentalist may repeat the same experiment multiple times in order to collect statistics. In real life there is no guarantee that a device behaves identically from one experiment to the next; its behavior may naturally fluctuate with time, or it may have memory and adapt itself, etc. The assumption that the device can be accessed repeatedly without changing its behavior is called the ``i.i.d.\ assumption'', for ``identically and independently distributed''. We will make that assumption when it is convenient; more often than not it can be dropped at the cost of substantial technical work that we will not always have the opportunity to accomplish. 
+%\item  Our presentation implicitly assumes that the experimentalist is interested in testing a single positive hypothesis. In real life there may be multiple possible hypotheses, and the experimentalist aims to determine which one fits the data best. We will generally assume that the experimentalist has a model that they are trying to test, and that this model is specified through a cost function. We will say that the device fits the cost model if it achieves a sufficiently high score, where the threshold can be set by the experimentalist (it is part of the description of the experiment). 
+\end{enumerate}
+
+
+\section{Interactive proofs}
+
+With this informal motivation for our notion of an ``interactive experiment'' in place we now give a more precise framework for modeling such experiments. For this we adapt the framework of \emph{interactive proof systems} from cryptography and complexity theory. In this framework it is generally assumed that a trusted entity called the \emph{verifier} interacts with an not-necessarily-trusted entity called the \emph{prover}. The verifier is trying to verify some claim about the world (e.g. in complexity, that some input formula $\varphi$ is satisfiable) or about the prover itself (e.g. in cryptography, that the prover has the right identifying information). Towards this the verifier may ``interrogate'' the prover in an interactive manner. At the end of the interaction the verifier makes a decision to accept or reject. Informally, the proof system will be called ``sound'' if whenever the verifier accepts, the claim is indeed true. 
+
+The formal definition of an interactive proof system makes use of the notion of ``interactive Turing machine'' to model the prover and verifier. Since this formalism will not be essential for us we refer the interested reader to~\cite[Chapter 4]{vidick2016quantum} for details. In complexity theory an interactive proof is always associated to a \emph{language}, that is a collection of problems, usually specified by strings $x\in\{0,1\}^*$, such that some of the problems have an affirmative answer and some have a negative answer (e.g. the problems could be graphs, and the ones with affirmative answer those that have a proper $3$-coloring). At the beginning of the interactive proof both prover and verifier are provided with a problem instance $x$, and the goal of the verifier is to leverage the prover's computational power to help her determine if $x$ is a positive instance, all the while accounting for the fact that the prover may misbehave. 
+
+For our purposes we are led to slightly broaden the notion in an informal manner, so that we can not only associate interactive proof systems to formal languages but also to statements about the device itself, as is sometimes done in cryptographic applications of interactive proof systems. We will thus refer to an interactive proof system, or sometimes more simply a ``test,'' for a \emph{hypothesis} $H$ as the specification of a verifier in an interactive protocol with the following properties: (In the protocol both verifier and prover may be provided with some auxiliary input, a classical $x_V$ for the verifier and a quantum $\rho_P$ for the prover.)
+\begin{enumerate}
+\item \emph{Completeness:} This property means that whenever the hypothesis $H$ (which may depend on $x_V$ and/or $\rho_P$) is satisfied there is a way for the prover to be accepted in the protocol ``with high probability.'' We will sometimes use a parameter $c\in [0,1]$ to designate the probability that a ``honest prover'' succeeds in the protocol. 
+\item \emph{Soundness:} This property means that whenever the hypothesis $H$ is not true no prover can succeed in the protocol with probability higher than a small quantity $s\in[0,1]$ termed the ``soundness parameter''. 
+\end{enumerate}
+We give a few examples. In the traditional setting of interactive proof systems the hypothesis $H$ is that $x_V = \rho_P \in L$, where $L$ is a fixed language,  $x_V$ is the verifier's input, and the prover's input $\rho_P$ is assumed to equal $x_V$. For example if $L=3COL$ then completeness states that whenever both $V$ and $P$ are provided with the valid description of a graph as input, and that this graph is $3$-colorable, there must be a way for the prover to convince the verifier that this is so; soundness states that whenever $x_V$ designates a graph that is not $3$-colorable, irrespective of what $\rho_P$ is there is no way for the prover to convince the verifier. (An interactive proof system that satisfies both conditions is one in which the verifier simply expects the prover to directly provide it with a proper coloring.)
+
+As a second example, $H$ could be the hypothesis that ``$P$ has the BB'84 state that is specified by $x_V$''. In this case we expect that e.g.\ $x_V = (v,\theta)$ for $v,\theta\in \{0,1\}$ and $\rho_P = H^\theta \ket{v}$. Completeness states that if this is indeed the case then there should be a way for $P$ to succeed; soundness states the converse. There is an easy quantum protocol for this hypothesis in which $P$ is expected to provide its qubit to $V$, who verifies it by performing the appropriate measurement. But is there a classical protocol?  
+
+Finally, a less formal but more interesting for us example is that we could consider $H$ to be the hypothesis that ``$P$ has a qubit.''. In this case we do not make use of the auxiliary inputs; completeness states that for any prover that does have a qubit (i.e.\ $P$ has access to observables $X,Z$ on $\mH$ such that $\{X,Z\}=0$) then there should be a way for it to succeed in the protocol, whereas soundness states that conversely, any prover that succeeds in the protocol must ``have a qubit.''
+
+\section{An operational definition of a qubit} 
+
+Given an interactive experiment of the sort described in the previous section, how do we model the actions of an arbitrary prover in the protocol? At each stage of the protocol the prover receives a question $x\in \mX$ and is expected to provide an answer $a\in\mA$. Here $\mX$ and $\mA$ are finite sets that are specified by the protocol. Although in general these sets may vary depending on the round in the protocol, for convenience we can assume that it is always the same set of questions and of answers that is used. 
+
+As discussed earlier we will in general make the assumption that the prover's actions can be modeled using quantum mechanics. Thus there must exist a Hilbert space $\mH$  associated with the prover and a state $\rho \in \Density(\mH)$ that the prover possesses at the start of the protocol. 
+
+\begin{remark} Here we start using the density matrix representation for quantum states: we use the notation $\Density(\mH)$ to represent the set of density matrices on $\mH$, i.e.\ positive semidefinite matrices with trace $1$. A density matrix is used to represent part of a quantum state $\ket{\psi} \in \mH \otimes \mH'$. Here $\mH'$ designates the Hilbert space associated with the ``environment'', which is everything that is not in the possession of $V$ or $P$. Since we do not want to rule out that the prover may share entanglement with the environment, we do not assume that their initial state is a pure state $\ket{\psi}$.  
+\end{remark}
+
+When $P$ receives its question $x$ it measures some observable $O_x = \sum_a \lambda_a \Pi^x_a$, where $\lambda_a$ are arbitrary and $\Pi^x_a$ projections that sum to identity, i.e.\ $\Pi^x_a$ is a POVM. According to the Born rule, it obtains an answer distributed as $\Pr(a|x) = \Tr(\Pi^x_a \rho)$.\footnote{This is the generalization of the Born rule to density matrices. We recover the pure case by restricting to $\rho = \proj{\psi}$, in which case using cyclicity of the trace, $\Tr(\Pi^x_a \rho) = \Tr(\Pi^x_a \proj{\psi}) = \bra{\psi} \Pi^x_a \ket{\psi}$.}
+ Finally the quantum state $\rho$ of the prover gets updated as a function of the outcome obtained. This formalization is fully general; in particular it can be used to model classical deterministic strategies by setting $\Pi^x_a = 1_{f(x)=a}$ where $f$ would be the function used by the prover to determine its answers. Similarly, randomized strategies can be represented by making use  of a totally mixed state $\rho = \sum_r p_r \proj{r}$, for some arbitrary distribution $\{p_r\}$, to capture the randomness. 
+
+When the interactive experiment is executed the only observable data that is accessible to the experimentalist is, at best, the probabilities $\Pr(a|x)$.\footnote{We write ``at best'' because the experimentalist does not get to see probabilities. Under the i.i.d.\ assumption it can sometimes estimate them to within an additive error. However, in the case where $\mA$ is a large alphabet it may be that all probabilities are exponentially small. This will be the case in some of the experiments that we describe.}
+An important consequence of this is that we cannot hope to achieve a characterization of the prover's \emph{observable itself}, but instead may only make assertions about  the \emph{action of the observable on the state}. That is, if $O$ is an observable, $\ket{\psi}$ a state on which it acts, and $U$ an arbitrary unitary,
+\[ \bra{\psi} O \ket{\psi} =\bra{U\psi}  (UOU^\dagger) \ket{U\psi}\;.\]
+Thus two models of the prover, using state $\ket{\psi}$ and observable $O$ or using state $U \ket{\psi}$ and observable $UOU^\dagger$, lead exactly to the same observed data. Our earlier definition of a qubit, by ignoring the role played by the state and imposing constraints on the operators themselves, violates this. This leads us to update our first definition as follows. 
+
+\begin{definition}[Qubit, Take 2]\label{def:qubit-2}
+A \emph{qubit} is a triple $(\ket{\psi},X,Z)$ such that $\ket{\psi} \in \State(\mH$), where $\mH$ is a separable Hilbert space left implicit in the notation, and $X$ and $Z$ are Hermitian operators on $\mH$ such that
+\begin{equation}\label{eq:ac-state}
+\{X,Z\}\ket{\psi} = 0\;.
+\end{equation}
+\end{definition}
+
+Note that the definition still makes the requirement that  $X^2=Z^2=\Id$ as operators. This is because this requirement follows from the laws of quantum mechanics themselves; informally, it just means that each of $X$ and $Z$ has a spectral decomposition with two associated eigenprojections, i.e.\ they represent valid binary observables. 
+
+At this point there are two important questions we should be asking: (i) Is this definition meanginful? With the anti-commutator weakened as in~\eqref{eq:ac-state}, does the definition still capture our intuitive notion of a qubit? (ii) We weakened the definition in an arbitrary-looking way by inserting a dependence on the state vector $\ket{\psi}$. Can we justify this, i.e.\ are we now able to develop protocols that test the definition? 
+
+In the remainder of the lecture we provide partial answers to these two questions. To answer the first, we show the following. 
+
+\begin{lemma}\label{lem:qubit-2-rigid}
+Let $(\ket{\psi},X,Z)$  be a qubit on $\mH$. Then there exists a Hilbert space $\mH'$ and an isometry $V: \mH\to  \C^2 \otimes \mH'$  such that 
+\begin{equation}\label{eq:qubit-2-rigid-a}
+ V X \ket{\psi} =  (\sigma_X \otimes \Id )V \ket{\psi}\qquad \text{and}\qquad  V Z \ket{\psi} =  (\sigma_Z \otimes \Id )V \ket{\psi} \;.
+\end{equation}
+\end{lemma}
+
+Note that the lemma no longer says that $X$ is \emph{equal} to $\sigma_X \otimes \Id$ (under the isomprhism $\pi$), but only that \emph{it has the same action on the state}, up to the isometry $V$. In particular, it is now possible for $\mH$ to have odd dimension. This is necessary: for example, we can set
+\[ \ket{\psi} = \begin{pmatrix} 1 \\ 0 \\ 0 \end{pmatrix}\;,\quad X = \begin{pmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{pmatrix}\;,\quad Z =  \begin{pmatrix} 1 & 0 & 0 \\ 0 & -1 & 0 \\ 0 & 0 & 1 \end{pmatrix}\]
+and still satisfy Definition~\ref{def:qubit-2}.  Here, the third dimension has been added to the operators but since none of $\ket{\psi}$, $X\ket{\psi}$ or $Z\ket{\psi}$ has support on it it is ``inaccessible'' to any experiment that involves only this state and operators. However, it is good to verify that the definition is non-trivial, and in particular requires $\dim(\mH)\geq 2$. Indeed, suppose that $X\ket{\psi}$ and $Z\ket{\psi}$ are colinear. Then by~\eqref{eq:qubit-2-rigid-a} it follows that $(\sigma_X\otimes \Id)V\ket{\psi}$ and $(\sigma_Z\otimes \Id)V\ket{\psi}$ are colinear. As we saw in the previous lecture, due to $\{\sigma_X,\sigma_Z\}=0$ this is impossible. 
+
+\begin{proof}
+The proof is very similar to the proof of Lemma~\ref{lem:qubit-c2}. Using Jordan's lemma we find a decomposition $\mH = \oplus_i \mS_i$ such that for each $i$, $\mS_i$ is stable by both $X$ and $Z$ and moreover either $\mS_i$ is $1$-dimensional or $\mS_i$ is $2$-dimensional and in a well-chosen basis, $Z = \sigma_Z$ and $X = \begin{pmatrix} c_i & s_i \\ s_i & -c_i \end{pmatrix}$ for some $c_i = \cos 2\theta_i$, $\theta_i \in [0,\pi/2)$. For the one-dimensional blocks the anti-commutator equals $(2)$. For a two-dimensional block we compute $\{X,Z\}^2_{|\mS_i} = 4 c_i^2 \Id$. Decompose $\ket{\psi} = \sum_i \alpha_i \ket{\psi_i}$ with $\ket{\psi_i} \in \mS_i$. Then we immediately see that if $\mS_i$ is a $1$-dimensional block, or a $2$-dimensional block such that $c_i \neq 0$, then $\alpha_i = 0$. This proves the lemma. 
+\end{proof}
+
+Note that the proof of the lemma shows something slightly stronger than is captured by the statement of the lemma: informally, that for any of the subspaces $\mS_i$ on which $\ket{\psi}$ ``has nonzero mass'', it must be that $\{X,Z\}_{|\mS_i}=0$, as operators. But we can't conclude anything about blocks where $\ket{\psi}$ ``has no mass''. 
+
+The proof that we gave easily extends to the approximate case. 
+
+\begin{exercise}
+Say that $(\ket{\psi},X,Z)$ is an $\eps$-approximate qubit if $\|\{X,Z\}\ket{\psi}\|\leq \eps$. Show that for $W\in \{X,Z\}$, 
+\[ \big\|\big( X - \pi (\sigma_X \otimes \Id )\pi^{-1} \big)\ket{\psi}\big\|^2 \,\leq\, O\big(\sqrt{\eps}\big)\;.\] 
+\emph{[Hint: Use $2(1-\sin\theta) \leq \sqrt{4\cos^2\theta}$ for $\theta\in[0,\pi)$.]}
+\end{exercise}
+
+We end the section with a semi-informal definition of ``self-testing'' that connects the notion of interactive experiment that we discussed earlier with the definition of qubit that we arrived at. For convenience we state the definition for the setting of an experiment that involves a single round of interaction: a question $x$ is selected by the experimentalist, and an answer $a$ is provided by the device. The ``observable data'' of such an experiment is completely captured in the family of distributions $\{p(\cdot|x)\}_{x\in \mX}$ over $\mA$, and so the starting point for the definition is that data only. 
+
+\begin{definition}\label{def:self-test}
+We say that the family of conditional distributions $\{p(\cdot|x)\}_{x\in \mX}$ \emph{self-tests a qubit} if for any state $\ket{\psi}\in \State(\mH)$ and  family of POVM $\{ P^x_a \}_{a\in \mA}$ for $x\in \mX$ such that $p(a|x) = \bra{\psi} P^x_a \ket{\psi}$ for all $a,x$ there is an isometry $V: \mH\to \C^2 \otimes \mH'$ and $x_0,z_0 \in \mX$ such that the measurements $P^{x_0}$ and $P^{x_1}$ have only two possible outcomes $0,1$ and moreover
+\begin{equation}\label{eq:st-1} V ( P^{x_0}_0 - P^{x_0}_1 ) \ket{\psi} = (\sigma_X \otimes \Id )V \ket{\psi}\quad\text{and}\quad V ( P^{z_0}_0 - P^{z_0}_1 ) \ket{\psi} = (\sigma_Z \otimes \Id )V \ket{\psi} \;.
+\end{equation}
+\end{definition}
+
+As you can see the definition is a little uncomfortable to state; not only does the notation quickly get pretty heavy but one also has to be quite careful to make a meaningful statement for the applications that one has in mind.
+
+The use of the isometry in the definition may come as a surprise, because it allows us to ``artificially'' extend the space in which the operators live. This is necessary because as discussed below Definition~\ref{def:qubit-2} in general the dimension of $\mH$ may not be even, whereas any space in which we can write something like ``$\sigma_X\otimes \Id$'' must have even dimension. For the time being you can think of $V$ as an artefact that may create additional dimensions in which $V\ket{\psi}$ has no ``mass'' at all, but are still needed to give the desired form to the operators. As discussed below Lemma~\ref{lem:qubit-2-rigid}, even with the isometry the conclusion of the lemma is not trivial since it at least implies that $\dim\mH\geq 2$. 
+
+Unfortunately, it is not hard to see that the definition is not ``achievable'' in the sense that without further assumptions, no family of distributions $\{p(\cdot|x)\}_{x\in \mX}$ {self-tests a qubit} in the sense of the definition. This is simply because in general one cannot avoid that, say, $\ket{\psi} = 1 \in \C$ and $P^x_a = p(a|x)$ for all $a$ and $x$, which is a valid POVM.\footnote{It is also possible to get a trivial realization using projective measurements by taking $\ket{\psi}$ to be sufficiently many EPR pairs, or a more general entangled state, so as to instantiate the randomness required to implement the distribution.} As such one should only treat this definition as ``indicative'' and we use it for inspiration only. In the future we will generally establish special-purpose statements that are more precise depending on the situation we're in. 
+
+
+
+
+\section{A first test for a qubit}
+\label{sec:first-qubit}
+
+We proceed to give a first answer to our second question, ``is the definition testable?'' Our answer today will not be completely satisfactory, but it's a start. Most important is that it will allow us to practice the notions introduced so far and  put in place techniques that will be useful later on. 
+
+In order to analyze the protocol that we give in Section~\ref{sec:firstprotocol} we will need some elementary notions about density matrices and entanglement. The reader already familiar with these notions may skip the next section, which contains a very brief introduction; as usual we refer to~\cite{nielsen2002quantum} for a much more leisurely, and comprehensive, discussion. 
+
+\subsection{Entanglement and density matrices}
+
+A pure state, as we know, is a unit vector in a Hilbert space $\mH$. A pure bipartite state is $\ket{\psi} \in \mH_\reg{A} \otimes \mH_\reg{B}$, where the ``bipartition'' of $\mH = \mH_\reg{A} \otimes \mH_\reg{B}$ is often implicit from context. We use subscripts $\reg{A}$ or $\reg{B}$ to denote subsystems, sometimes also called ``registers''. Any pure bipartite state has a \emph{Schmidt decomposition} 
+\begin{equation}\label{eq:schmidt}
+\ket{\psi}_{\reg{AB}} = \sum_i \sqrt{\lambda_i} \ket{u_i}_{\reg{A}} \ket{v_i}_{\reg{B}}
+\end{equation}
+where the $\lambda_i$ are non-negative reals that sum to $\|\ket{\psi}\|^2=1$ and $\{\ket{u_i}\}$ and $\{\ket{v_i}\}$ are orthonormal bases of $\mH_\reg{A}$ and $\mH_\reg{B}$ respectively. Here in the notation we sometimes, but not always, include a subscript $\reg{A}$ or $\reg{B}$ (or both) on a ``ket'' to indicate which subsystem the state lies in. 
+ The coefficients $\lambda_i$ in~\eqref{eq:schmidt} are called \emph{Schmidt coefficients} and are uniquely defined. The  $\{\ket{u_i}\}$ and  $\{\ket{v_i}\}$ are called Schmidt vectors. The reduced state of $\ket{\psi}_{\reg{AB}}$ on $\mH_A$ is described by a density matrix $\rho_A = \sum_i \lambda_i \proj{u_i}$, that one can interpret as a distribution over pure states $\ket{u_i}$. More generally, if $\rho_{\reg{AB}}$ is a density matrix on  $\mH_\reg{A} \otimes \mH_\reg{B}$  we use the notation $\rho_{\reg{A}} = \Tr_{\reg{B}}(\rho_{\reg{AB}})$ to denote its reduced density on $\mH_\reg{A}$, and $\rho_{\reg{B}}=\Tr_{\reg{A}}(\rho_{\reg{AB}})$ for $\mH_\reg{B}$. These reduced densities can be computed by extending the definition given for pure states by linearity, or in any other of a number of equivalent ways. 
+
+For us, the EPR pair is a specific bipartite state $\ket{\phi^+} = \frac{1}{\sqrt{2}}(\ket{00}+\ket{11})$. It has the interesting property that for any orthonormal basis $\ket{u_0},\ket{u_1}$ of $\C^2$, 
+\begin{equation}\label{eq:epr-shift}
+\ket{\phi^+} = \frac{1}{\sqrt{2}}(\ket{u_0}\overline{\ket{u_0}}+\ket{u_1}\overline{\ket{u_1}})\;.
+\end{equation} This is because more generally for a linear operator $A$ on $\C^2$, $(A\otimes \Id)\ket{\phi^+} = (\Id\otimes A^T)\ket{\phi^+}$. In particular, we see that if a measurement of the first qubit is made in the basis $\{\proj{u_0},\proj{u_1}\}$ and the outcome $b\in \{0,1\}$ is obtained then the state of the second qubit reflects this fact, becoming $\overline{\proj{u_b}}$. 
+
+
+\subsection{The protocol}
+\label{sec:firstprotocol}
+
+Consider the following protocol between a ``verifier'' $V$ and a ``prover'' $P$. Although ultimately our goal is to have protocols that involve a purely classical verifier, in this first protocol $V$ has some quantum capabilities; its goal is to use this to ascertain that $P$ has similar capabilities. In particular for this protocol we assume that $V$ has a quantum communication channel to $P$. 
+
+\begin{enumerate}
+\item $V$ selects two bits $v,\theta\in\{0,1\}$ uniformly at random. She prepares a single-qubit state $\ket{v^\theta} = H^\theta \ket{v}$, where $H = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1\end{pmatrix}$ is the Hadamard matrix, and sends it to $P$. 
+\item $V$ waits for a few seconds. 
+\item $V$ sends $\theta$ to $P$. 
+\item $P$ returns a value $v'\in\{0,1\}$. 
+\item $V$ declares that $P$ has succeeded if and only if $v'=v$.
+\end{enumerate}
+
+We claim that any prover that succeeds with probability $1$ in this protocol ``has a qubit''. Before showing this, let's discuss a few points. 
+\begin{itemize}
+\item \emph{What do you mean, the prover has a qubit? Of course it has a qubit--the verifier sent it to him!} Aha, but remember the discussion surrounding our definition of a qubit! What the prover gets is the \emph{state} of a qubit. A good model for a ``classical'' prover would be one that quickly measures (``decoheres'') any state it receives in the computational basis, recovering the classical information only. Certainly, such a prover would not count as having a ``qubit'', because any measurement they are able to make is in the computational basis, and in particular commutes. And indeed, it is easy to verify that such prover only succeeds with probability at most $3/4$ in the test. This is why step 2., the few seconds' pause, is inserted in the protocol. As we will see from the proof, we will be able to show that the prover still ``has a qubit'' at step 3, when it receives the value $\theta$ from $v$. 
+\item \emph{Didn't we say that the verifier is classical? How come they can prepare qubits?} That's a good point. As our analysis will show it is possible to show that the same protocol remains valid if we remove the assumption that the verifier prepares the claimed state. That is, we can assume that an arbitrary entity prepares an arbitrary $(1+N)$-qubit state and sends one qubit to $V$ and the others to $P$. In that case the only thing that we need to assume is that the verifier has the ability to measure $\sigma_X$ and $\sigma_Z$. So, using that the verifier has a qubit, they can check that the prover also has a qubit. It's not so trivial!
+\item \emph{How can you check that the prover succeeds with probability $1$?} Of course, we can't. Assuming that the prover behaves in an i.i.d.\ fashion, repeating the protocol $ K \sim (1/\eps)\log (1/\delta)$ times and observing $K$ successes would let us conclude, with confidence $1-\delta$, that the prover's ``intrinsic'' probability of succeeding is at least $1-\eps$.\footnote{In other words, we'd show that any prover whose probability of succeeding is $<1-\eps$ only has a chance at most $\delta$ to succeed in $K$ repetitions.}
+\end{itemize}
+
+\begin{lemma}\label{lem:qubit-test-1}
+Suppose that a prover $P$ succeds with probability $1$ in the protocol. Then $P$ has a qubit. 
+\end{lemma}
+
+To connect the statement of the lemma to Definition~\ref{def:self-test} we could also try to say that in this protocol, the family of distributions $\{p(v'|\theta,v)=1_{v'=v}\}_{v,\theta\in\{0,1\}}$ ``self-tests'' a qubit. As we had predicted however, the protocol does not neatly fit the definition for multiple reasons: it is not a 1-round protocol, there is quantum communication, and the verifier maintains private information (the value $v$). 
+
+\begin{proof}
+Before we show anything let's first model precisely what goes on in this protocol; this modeling step is often the most important one in the analysis of a protocol. For the proof it is more convenient (and also more general) to consider the ``purified'' variant hinted at above. First, note the following equivalent description of the protocol:
+\begin{enumerate}
+\item The verifier prepares a two-qubit EPR pair $\ket{\phi^+} = \frac{1}{\sqrt{2}}(\ket{00} + \ket{11})$. She keeps the first qubit to herself and and sends the second to the prover. 
+\item The prover applies an arbitrary quantum map to their qubit, yielding the shared state $\ket{\tilde{\phi}} = (\Id\otimes W)\ket{\phi^+}$, where $W$ is the prover's operation. In general, the prover's map can be any isometry\footnote{An isometry is a linear length-preserving map into a larger space. Formally, $W:\C^2\mapsto \mH$ such that $W^\dagger W = \Id$. For example, $W\ket{u} = \ket{u}\ket{0}$ is an isometry, which simply appends a qubit in state $\ket{0}$ to its input.} as the prover may append ancilla qubits if it so desires.\footnote{We can use the ancilla to model a classical prover as well; here, $W$ would simply copy the qubit to an environment register that would become inacessible to the prover. This effectively decoheres the qubit that remains in the prover's possession.} 
+\item The verifier  flips a coin $\theta\in\{0,1\}$ and measures her qubit in the standard basis (i.e.\ the eigenbasis of $\sigma_Z$) if $\theta=0$ and the Hadamard basis (the eigenbasis of $\sigma_X$) if $\theta=1$, obtaining an outcome $v\in\{0,1\}$.
+\item[4.-5.] Same.
+\end{enumerate}
+Using the observation~\eqref{eq:epr-shift} (and the discussion that follows it) we see that Step 4 has the effect of projecting the prover's share of the joint state to $W \ket{v^\theta}$, which is effectively the state that it would be in had we proceeded according to the original description of the protocol. So, the two descriptions are equivalent.
+
+This ``purified'' description of the protocol has one major advantage, which is that it allows us to ``delay'' Alice's choice of $\theta$ and $v$ until step 3; as we will see this is very helpful. Yet the version that we wrote down is still not so easy to analyze, mainly due to the fact that the isometry $W$ may be completely arbitrary. As it turns out it is more convenient to analyze another variant in which the prover is given \emph{more} power, so that showing this variant secure will immediately imply the same for the original one. In the new variant we replace the first two steps by imagining that both verifier and prover are handed out a share of an arbitrary initial state $\ket{\psi}_{\reg{AB}} \in \C^2_{\reg{A}} \otimes \mH_{\reg{B}}$. Here the verifier gets the first subsystem, that is assumed to be of dimension $2$, and the prover gets the second subsystem, whose dimension is arbitrary. This is more general because the state of the verifier's qubit is no longer characterized (except for its dimension, that we fix to $2$). However, we will show that even in this variant in order to succeed the prover must ``have a qubit''. 
+
+\begin{remark} It will generally be convenient to assume that any measurement that the prover makes can be modeled by a projective measurement. Abstractly, this can be guaranteed by Naimark's theorem. We will not review the theorem here, but if you are not familiar with it it is a good idea to make sure that you understand its formulation. In particular, any use of Naimark's may require extending the Hilbert space by adding ancilla qubits to $\ket{\psi}$. This operation is an isometry that one should not forget to include in the conclusion one is making---it is another reason for including the isometry $V$ from Definition~\ref{def:self-test}.
+\end{remark}
+
+Continuing our modeling effort, at step 4 of the protocol the prover has in its hands (i) the qubit it received from the verifier, that we model as the second half of some $\ket{\psi}_{\reg{AB}} \in \C^2_{\reg{A}} \otimes \mH_{\reg{B}}$ (where the extension to a larger space $\mH_{\reg{B}}$ may have occurred as a result of some map that the prover applied  during the course of step 2 in the protocol), and (ii) the value $\theta\in\{0,1\}$ it has received at step 3. Given this information, it is expected to return a value $v'\in\{0,1\}$. In full generality we can model this by saying that for each $\theta\in\{0,1\}$ the prover has a measurement $\{P^\theta_0,P^\theta_1\}$ that it performs on its share of $\ket{\psi}_{\reg{AB}}$ in order to obtain $v'$. Using the remark we may further assume that this measurement is projective, and so we can associate a binary observable $P^\theta = P^\theta_0 - P^\theta_1$, for $\theta\in\{0,1\}$, to it. While this requires to enlarge the prover's space to apply Naimark's theorem, since here we already allow the space to be arbitrary there is no loss in generality with assuming at the outset that $\{P^\theta_0,P^\theta_1\}$ is projective. 
+
+With all this modeling in place we are ready to write a formal expression for the prover's success probability in the test. By definition it is 
+\begin{align}
+\Pr(v=v') &= \frac{1}{2}\big( \bra{{\psi}} (\proj{0} \otimes P^0_0) \ket{{\psi}} +  \bra{{\psi}} (\proj{1} \otimes P^0_1) \ket{{\psi}}\big)\notag\\
+&\qquad  + \frac{1}{2}\big( \bra{{\psi}}( \proj{+} \otimes P^1_0 )\ket{{\psi}} +  \bra{{\psi}} (\proj{0} \otimes P^1_1 )\ket{{\psi}} \big) \;.\label{eq:test1-1}
+\end{align}
+Here the factors $\frac{1}{2}$ represent the probabilities that the verifier chooses $\theta=0$ (measurement in the standard basis) and $\theta=1$ (measurement in the Hadamard basis) respectively, and inside each bracket each of the two terms represents the probability that the prover and verifier obtain the same measurement outcome $v=v'=0$ for the first term and $v=v'=1$ for the second. 
+Using the identities 
+\[ \proj{0} = \frac{1}{2}\big(\Id+\sigma_Z \big)\;,\quad \proj{1} = \frac{1}{2}\big(\Id-\sigma_Z \big) \quad \text{and}\quad\proj{+} = \frac{1}{2}\big(\Id+\sigma_X \big)\;,\quad \proj{-} = \frac{1}{2}\big(\Id-\sigma_X \big)\]
+as well as the symmetric ones 
+\[ P^0_0 = \frac{1}{2}\big( \Id + P^0\big)\;,\quad P^0_1 = \frac{1}{2}\big(\Id - P^0\big)\quad\text{and}\quad P^1_0 = \frac{1}{2}\big( \Id + P^1\big)\;, \quad P^1_1 = \frac{1}{2}\big(\Id - P^1\big)\]
+together with some simple manipulations
+ we can rewrite the expression~\eqref{eq:test1-1} as 
+\begin{align}
+\Pr(v=v') &= \frac{1}{2} + \frac{1}{4}\big( \bra{{\psi}} \sigma_Z \otimes P^0 \ket{{\psi}}+  \bra{{\psi}} \sigma_X \otimes P^1 \ket{{\psi}} \big)\;.\label{eq:qubit-1-a}
+\end{align}
+This equality is the central equality in the proof, so it is worth looking at it closely. The expression quantifies some form of ``correlation'' between the verifier's observables, $\sigma_Z$ and $\sigma_X$, and the prover's, $P^0$ and $P^1$. Each of the numbers inside the brackets on the right-hand side is a real number in $[-1,1]$ that is the expectation value of the product of their outcomes, when interpreted as values in $\pm 1$. For the success probability to equal $1$ the outcomes must always match. Note, however, that the verifier is making two \emph{incompatible} measurements on their share of the state. The following claim shows that in this situation the prover's observables must also be incompatible, i.e.\ anti-commute. 
+
+\begin{claim}\label{claim:qubit-test-1a}
+Let $\ket{\psi} \in \C^2 \otimes \mH$ be an arbitrary state and $X,Z$ arbitrary observables on $\mH$ such that 
+\begin{equation}\label{eq:qubit-test-1a}
+ \bra{\psi} \sigma_X \otimes X \ket{\psi} = \bra{\psi} \sigma_Z \otimes Z \ket{\psi} = 1\;.
+\end{equation}
+Then $(\Id \otimes \{X,Z\})\ket{\psi} = 0$. 
+\end{claim}
+
+Intuitively, if $X$ and $Z$ were \emph{not} incompatible then, since $X$ can be used to predict the outcome of $\sigma_X$ and $Z$ that of $\sigma_Z$, by simultaneously measuring the \emph{compatible} observables $X$ and $Z$ we would be able to simultaneously predict the outcomes of a measurement in the \emph{incompatible} observables $\sigma_X$ and $\sigma_Z$, a contradiction. Let's see the proof. 
+
+\begin{proof}
+Using that all operators have norm at most $1$ and that $\|\ket{\psi}\|=1$ the equality~\eqref{eq:qubit-test-1a} implies that
+\[ \Id\otimes X \ket{{\psi}} = \sigma_X \otimes \Id \ket{{\psi}}\quad\text{and}
+\quad \Id\otimes Z \ket{{\psi}} = \sigma_Z \otimes \Id \ket{{\psi}}\;.\]
+Using these identities, 
+\begin{align*}
+XZ\ket{{\psi}} &= \sigma_X \sigma_Z \ket{{\psi}}\\
+&= -\sigma_Z \sigma_X \ket{{\psi}}\\
+&= - ZX \ket{\tilde{\psi}} \;,
+\end{align*}
+as required. 
+\end{proof}
+
+\begin{exercise}
+The proof can be adapted to show a bit more than we extracted from it. By using Lemma~\ref{lem:qubit-2-rigid} show that under the same assumptions as in the claim there must exist an isometry $V:\mH\to\C^2 \otimes \mH'$ on $\mH$ under which $(\Id_{\C^2} \otimes V)\ket{\psi} = \ket{\phi^+} \otimes \ket{\psi'}$, where $\ket{\phi^+} = \frac{1}{\sqrt{2}}(\ket{00}+\ket{11}$ is an EPR pair and $\ket{\psi'}$ an arbitrary state on $\mH'$. That is, even if we do not assume a priori that the two parties share an EPR pair, they must do so in order to win with probability $1$.
+\end{exercise}
+
+Applying Claim~\ref{claim:qubit-test-1a} to $Z=P^0$ and $X=P^1$ and using~\eqref{eq:qubit-1-a} to verify that~\eqref{eq:qubit-test-1a} is satisfied we obtain that 
+ $(\ket{{\psi}},P^0,P^1)$ is a qubit according to Definition~\ref{def:qubit-2}. This concludes the proof.
+\end{proof}
+
+
+\section{Scaling it up: a test for quantum memory}
+
+The main drawback of the test presented in the previous section is that it requires one qubit on the verifier side to test one qubit on the prover side. In general we are interested in tests where the verification effort is much smaller than the effort that is certified of the quantum device, or ``prover''. 
+
+The test we presented has a natural ``scaled up'' variant, in which the verifier sequentially prepares single-qubit states $\ket{v_i^{\theta_i}}$ for $i=1,\ldots,n$ and sends them to the prover. Once all qubits have been sent, the verifier announces $\theta_1,\ldots,\theta_n$ and expects $v'_1,\ldots,v'_n \in \{0,1\}$ such that $v'_i=v_i$ for all $i$. In this test the verifier can accomplish her share of the work using a single-qubit computer only, since she can prepare and send the $n$ qubits one at a time and use classical memory to store the entire strings $v,\theta\in\{0,1\}^n$. A similar analysis as the one presented in the previous section would then demonstrate that the prover ``has $n$ qubits'', where the notion of having $n$ qubits is the state-dependent version of the $n$-qubit definition we saw in the previous lecture, Definition~\ref{def:n-qubit-take1}. Moreover, an $n$-qbut variant of Lemma~\ref{lem:qubit-2-rigid} also holds, so that we'd effectively have shown that the prover does require a quantum memory of dimension $2^n$ in order to successfully accomplish its task. 
+
+Unfortunately, the method that we introduced so far does not extend well to success probabilities smaller than $1$. In general it is unrealistic to make the assumption that the prover succeeds perfectly in the protocol, as this cannot be verified. A more reasonable assumption is that the prover succeeds with probability $1-\eps$, for some constant $\eps>0$ that can be made smaller and smaller with higher and higher confidence by repeating the protocol, but can never be driven down to exactly zero. As far as I can tell applying the method from the previous section to this case only yields a good bound on the quantum dimension of the prover when $\eps =O(1/n)$, which then requires $\Omega(n)$ executions of the protocol to certify. (See~\cite[Theorem 2.1]{chao2018test} for a quantitative statement of the kind that would apply here.)
+
+Instead in this section we propose a different method to analyze the scaled up protocol, that uses information-theoretic technique to quantify the intuition from previous section that the quantumness of the prover arises from its need to make predictions for incompatible observables. This method based on information theory has the advantage that it generally yields much better quantitative results. The main drawback is that it allows us to certify less---here, we will be able to certify the prover's quantum dimension but not the observables that it makes use of. 
+
+Before stating the protocol precisely and giving the analyzis we introduce a variant of Heisenberg's uncertainty principle ``for qubits'' that we will make use of in the proof. 
+
+\subsection{Uncertainty relations}
+
+Our notion that anti-commuting observables are ``incompatible'' can be quantified through the uncertainty principle. Here is an elementary formulation that applies to our context, due to Maassen and Uffink. To state it we recall the definition of the Shannon entropy, 
+\[H(\{p_i\}) \,=\, -\sum_i p_i\log p_i\;,\]
+for any distribution $\{p_i\}$. Note that here we use a variant using base $2$ logarithms, which is the standard used for the extension to density matrices, that we give a little later. 
+
+\begin{theorem}\label{thm:maasen}
+Let $R$ and $S$ be observables on $\mH$. Let $c = \max | \bra{\psi} \phi\rangle|^2$ where $\ket{\psi}$ (resp. $\ket{\phi}$) ranges over all eigenvectors of $R$ (resp. $S$). Let $\ket{\psi}$ be an arbitrary state on $\mH$ and let $R$ and $S$ be random variables distributed as the outcome of a measurement of $R$ and $S$ on $\ket{\psi}$, respectively. Then 
+\begin{equation}\label{eq:maasen-0}
+ H(R) + H(S) \,\geq\, \log_2\frac{1}{c}\;.
+\end{equation}
+\end{theorem}
+
+In the case when $R$ and $S$ are binary observables then $c$ is precisely the squared cosine of the smallest principal angle between an eigenspace of $R$ and an eigenspace of $S$. If $R$ and $S$ have an eigenvector in common then $c=1$ and the right-hand side in~\eqref{eq:maasen-0} vanishes, as one would expect since taking $\ket{\psi}$ to be that eigenvector yields zero entropy on the left-hand side. 
+If $R$ and $S$ anti-commute, all the principal angles are $\pi/4$ and so $c=\frac{1}{2}$. In this case, the uncertainty principle states that among the two binary variables $R$ and $S$ there is at least one bit of entropy. This is a quantitative version of an observation that we made in the first lecture, which was that any state that is determined for one observable must be ``fully random'' with respect to the other: in that case we get $H(R)=0$ and $H(S)=1$ (or vice-versa). Theorem~\ref{thm:maasen} shows that there is always a quantitative trade-off between these two extremes. 
+
+For our purposes we need an extension of this relation to the case of quantum memory. To motivate it, interpret Theorem~\ref{thm:maasen} as a statement about the difficulty of a \emph{prediction task}:
+\begin{enumerate}
+\item The ``adversary'' prepares an arbitrary pure state $\ket{\psi}$ and sends it to the ``challenger''.
+\item The challenger selects a uniformly random $\theta\in\{0,1\}$ and measures $\ket{\psi}$ using the observable $R$ (case $\theta=0$) or $S$ (case $\theta=1$), obtaining an outcome $r$ or $s$ respectively. It sends $\theta$ to the prover.
+\item The prover returns a guess $r'$ or $s'$, depending on $\theta$. 
+\item The adversary succeeds if its guess is correct. 
+\end{enumerate}
+Intuitively Theorem~\ref{thm:maasen} states that there is no way for the adversary to succeed in this game, because however it prepares $\ket{\psi}$ at least one of $r$ or $s$ will have randomness in it, making it impossible to predict without additional information. (There is a precise quantitative connection between optimal success probability in this game and the left-hand side in~\eqref{eq:maasen-0}, but making this precise would take us a little too far in the discussion of entropies.)
+
+Now suppose for simplicity that $R=\sigma_X$ and $S=\sigma_Z$. Then the game studied in the previous section suggests that there is a way for the adversary to succeed perfectly in this game, if they are allowed to have quantum memory: in this case, they would prepare an EPR pair $\ket{\phi^+}_{\reg{AB}}$ and give only the first qubit to the challenger. To match the challenger's outcome, they would simply make the same measurement on the qubit that they had kept to themselves. In this case their prediction will be correct with probability 1! 
+
+This example suggests that Theorem~\ref{thm:maasen} should be modified to account for this more complex scenario. Berta et al., based on work by Christandl, Winter, and others, introduced the following refinement. To state the refinement we recall the definition of the conditional von Neumann entropy: for a bipartite state $\rho_{\reg{A}\reg{B}}$, 
+\begin{equation}\label{eq:def-cond-vn}
+H(A|B)_\rho = H(\rho_{\reg{AB}}) - H(\rho_\reg{B})\;,
+\end{equation}
+where $\rho_{\reg{B}}$ is the reduced density matrix of $\rho_{\reg{AB}}$ on $\mH_B$ and for a density matrix $\sigma$, $H(\sigma)$ is its von Neumann entropy
+\[H(\sigma) \,=\,  -\Tr(\sigma\ln\sigma) \,=\,  -\sum_i \lambda_i\log \lambda_i\;,\]
+ where the $\lambda_i$ are the nonzero eigenvalues of $\sigma$. 
+
+. Note that this quantity can be negative! However, it can never be more negative than the ``quantum dimension'' of $\reg{B}$. To make this notion precise we introduce the notion of a ``classical-quantum'', or CQ state. A CQ state is simply a bipartite state such that the first system is classical. More precisely, a CQ state $\rho_{\reg{AB}} \in \Density(\mH_A \otimes \mH_B)$ has a decomposition
+\[ \rho_{\reg{AB}}\,=\, \sum_{x} \,\proj{x}_\reg{A} \otimes (\rho_x)_{\reg{B}}\;,\]
+where here $x$ ranges over the standard basis of $\mH_\reg{A}$. The first system is ``classical'' in the sense that a measurement of it in the standard basis does not change $\rho$. Now, for an arbitrary state $\rho \in \mH_\reg{A} \otimes \mH_{\reg{B}}$ suppose that we can decompose the $B$ part into a ``classical'' part $\reg{C}$ and a ``quantum'' part $\reg{Q}$: 
+\[ \rho_{\reg{B}} = \sum_c p_c\,\proj{c}\otimes \rho_c \in \mH_C \otimes \mH_Q\;,\]
+where $\{p_c\}$ is an arbitrary distribution. Then $\rho_{AB} = \sum_c p_c \proj{c} \otimes \rho'_c$, with $\rho'_c \in \Density(\mH_\reg{A} \otimes \mH_{\reg{Q}})$ such that $\Tr_{\reg{A}}(\rho'_c) = \rho_c$. Then,
+\begin{align}
+H(A|B)_\rho &= H(\rho_\reg{AB}) - H(\rho_\reg{B})\notag\\
+&= \Big(H(\{p_c\}) + \sum_c p_c H(\rho'_c) \Big) - \Big( H(\{p_c\} + \sum_c p_c H(\rho_c)\Big)\notag\\
+&\geq \min_c \big( H(\rho'_c) - H(\rho_c) \big)\notag\\
+&= \min_c H(A|Q)_{\rho'_c}\notag\\
+&\geq -\log\dim \mH_\reg{Q}\;.\label{eq:dimq-lb}
+\end{align}
+Here, the first line is by definition, the second is the chain rule, the third and fourth are clear, and the last is again by definition.
+
+
+
+\begin{theorem}\label{thm:uncertainty-quantum}
+Let  $R$ and $S$ be observables on $\mH_{\reg{A}}$ and $c = \max | \bra{\psi} \phi\rangle|^2$ where $\ket{\psi}$ (resp. $\ket{\phi}$) ranges over all eigenvectors of $R$ (resp. $S$). Let $\rho_{\reg{AB}}$ be an arbitrary density matrix on $\mH_\reg{A}\otimes \mH_{\reg{B}}$. Let $R(\rho), S(\rho)\in \Density(\mH_A\otimes \mH_B)$ denote the post-measurement states after a measurement of $\reg{A}$ using the observables $R$ and $S$ respectively.\footnote{Equivalently, this is like decohering $\reg{A}$ in the eigenbasis of $R$ or $S$ respectively.} Then 
+\begin{equation}\label{eq:unc-quantum}
+ H(A|B)_{R(\rho)} + H(A|B)_{S(\rho)} \,\geq\, \log_2\frac{1}{c} + H(A|B)\;.
+\end{equation}
+\end{theorem}
+
+If $B$ is empty and $\ket{\psi}_{\reg{A}}$ is a pure state then $H(A|B)=0$ and we recover the previous relation. If $B$ is empty and $\rho_{\reg{A}}$ is a mixed state than $H(A|B)>0$ and we obtain a strengthening of Theorem~\ref{thm:maasen}. If $\rho_{AB} = \proj{\phi^+}_{\reg{AB}}$ is an EPR pair then we can compute $H(A|B)_{\phi^+} = -1$, so the inequality does not imply any non-trivial bound on the left-hand side, as we expect it to based on the discussion above. 
+
+
+
+\subsection{A test for large quantum memory}
+
+The information-theoretic tools introduced in the previous section allow us to introduce a neat ``scaling up'' of the single-qubit test from Section~\ref{sec:first-qubit}. Towards this we consider the following variant of the protocol from Section~\ref{sec:firstprotocol}, which was introduced in~\cite{chao2020quantum}. Important changes are highlighted in {\color{blue} blue}.  
+
+
+\begin{enumerate}
+\item $V$ selects a bit $\theta\in\{0,1\}$ and {\color{blue} a string $v\in\{0,1\}^n$} uniformly at random. For $i=1,\ldots,n$ she successively prepares the single-qubit states $\ket{v_i^\theta} = H^\theta \ket{v_i}$ and sends them to $P$. 
+\item $V$ waits for a few seconds. 
+\item $V$ sends $\theta$ to $P$. 
+\item $P$ returns a {\color{blue} string $v'\in\{0,1\}^n$}. 
+\item $V$ declares that $P$ has succeeded if and only if $v'=v$.
+\end{enumerate}
+
+Note that compared to the na\"ive repetition of the single-qubit protocol, here we elected to use the same basis for all qubits. This brings a very minor saving in communication, and in parameters, that comes for free from the tools that we use to analyze the protocol. 
+
+\begin{lemma}\label{lem:qubit-test-n}
+Suppose that $P$ succeeds with probability $1$ in this protocol. Then $P$ has quantum memory of dimension $2^n$.  
+\end{lemma}
+
+\begin{proof} 
+As in the proof of Lemma~\ref{lem:qubit-test-1} it is convenient to consider a purified version of the protocol in which the verifier prepares $n$ EPR pairs and measures her $n$ halves in the basis $\theta$ at step $3$. Moreover, we can give more power to the adversary by considering that the joint state between $V$ and $P$ at the end of step 2 is an arbitrary $\rho \in (\C^2)^{\otimes n} \otimes \mH$ where the $n$ copies of $\C^2$ correspond to the verifier's qubits, and the remaining space $\mH$ is in the hands of the prover. Let $R$ (resp. $S$) be the observable associated with a measurement of the verifier's $n$ qubits in the computational (resp. Hadamard) basis. 
+
+First we show that the fact that the prover succeeds in probability $1$ in the protocol implies that necessarily the left-hand side in~\eqref{eq:unc-quantum} equals $0$. This is due to the \emph{data processing inequality}, which states that the conditional entropy can only \emph{increase} as a result of any quantum information performed on the system that is being conditioned on. (This is intuitive: in an information-theoretic sense post-processing can only {increase} uncertainty, by discarding information, and not reduce it.) Starting from e.g. 
+\[\rho'\,:=\, R(\rho) = \sum_{v\in\{0,1\}^n}\, \Pr(v)\, \proj{v}\otimes \rho'_v\;,\]
+ where $v$ denotes the verifier's outcome, $\Pr(v)$  denotes the probability that the verifier obtains the outcome $v$ (conditioned on having chosen to perform a measurement in the standard basis) and $\rho'_v\in\Density(\mH)$ the prover's system conditioned on the verifier having obtained $v$, the prover's measurement that returns $v'$ yields 
+\[\rho''\,:=\, \sum_{v,v'} \,\Pr(v)\, \Pr(v'|v) \proj{v} \otimes \proj{v'} \,=\,\sum_{v} \,\Pr(v)\, 1 \proj{v} \otimes \proj{v}\;,\]
+since $v=v'$ with probability $1$.  On the state $\rho''$, $H(A|B)_{\rho''}=0$ since both systems are classical and perfectly correlated. Since $\rho''$ is obtained by a measurement on register $B$ in $\rho'$, it follows that $H(A|B)_{\rho'} \leq 0$.\footnote{This inequality suffices for our purposes, but using that $\reg{A}$ is classical it is possible to conclude that $H(A|B)_{\rho'} = 0$.} Of course a similar argument applies to $S$, showing that the left-hand side in~\eqref{eq:unc-quantum} is non-positive (and in fact, equal to $0$). 
+
+Using that the maximum overlap $c$ between an eigenvector of $R$ and an eigenvector of $S$ is $c=1/2^n$ and applying Theorem~\ref{thm:uncertainty-quantum} we deduce that necessarily 
+\begin{align*}
+H(A|B)_\rho \,\leq\, -\log_2 \frac{1}{c} \,=\, -n
+\end{align*}
+We conclude by~\eqref{eq:dimq-lb}: the dimension of Bob's quantum memory must be at least $2^n$. \end{proof}
+
+An advantage of using information theory is that it is generally a very robust technique, i.e.\ with all the machinery that we put in place it is not hard to extend the proof of Lemma~\ref{lem:qubit-test-n} to cover the case where the prover's success probability is not necessarily $1$ and may even be quite small. It is also possible to analyze a ``fault-tolerant'' variant of the protocol in which the verifier accepts the outcome $v'$ reported by $P$ as long as it matches $v$ in a fraction at least $(1-\alpha)$ of positions, where $\alpha \in (0,1/2]$ is an arbitrary constant.  The following is shown in~\cite{chao2020quantum}. 
+
+\begin{theorem}[Theorem 2.1 in~\cite{chao2020quantum}]
+If $P$ succeeds with probability $p$ in the protocol, then its Hilbert space must have dimension $d$ such that 
+\[ \log_2(d) \,\geq\, \big((1-H(\alpha))2p-1\big)n - 2 H(p)\;,\]
+where $H$ is the binary entropy function. 
+\end{theorem}
+
+This result is quite strong, as even for small constant values of $\alpha$ and values of $p$ that are sufficiently close to $1$ we get a bound on the number of qubits of memory that Bob needs to keep that scales linearly with $n$. Aside from the ``dimension test'' presented here these kinds of bounds have found numerous applications in cryptography such as to proving security in the bounded storage model, where it is assumed that the adversary has a limited amount of storage available  (for the reader familiar with cryptography but who hasn't seen this before, we probably already said enough to start suggesting a protocol for some variant of oblivious transfer...). 
+
+While techniques based on information theory have quantitative advantages, they will generally not suffice for our purposes. In particular, note the difference between Lemma~\ref{lem:qubit-test-1} and Lemma~\ref{lem:qubit-test-n}: while the latter guarantees ``one qubit'' the former certies ``dimension $2^n$'': the former is quantitatively stronger, but qualitatively weaker as it does not give us access to information about the prover's observables. From now on we will mostly abandon the use of information theory, as it is too coarse grained for our purposes. 
