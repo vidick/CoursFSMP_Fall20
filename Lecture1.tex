@@ -84,7 +84,7 @@ The discussion of Jordan's lemma in this section is mostly borrowed from \url{ht
 \begin{equation}\label{eq:pq}
 Q\ket{\varphi} = R\ket{\varphi} - P\ket{\varphi} = \lambda \ket{\varphi} - P \ket{\varphi}
 \end{equation}
-it follows that $Q\ket{\varphi}$ is also parallel to $\ket{\varphi}$, so $\ket{\varphi}$ is a common eigenvector of $P$ and $Q$. The second case is that $P\ket{\varphi}$ is linearly independent from $\ket{\varphi}$. In this case the two-dimensional subspace $\mS$ spanned by $\ket{\varphi}$ and $P\ket{\varphi}$ is invariant under $P$, because being a projection $P$ satisfies $P^2=P$. Moreover, by
+it follows that $Q\ket{\varphi}$ is also parallel to $\ket{\varphi}$, so $\ket{\varphi}$ is a common eigenvector of $P$ and $Q$. The second case is that $P\ket{\varphi}$ is linearly independent from $\ket{\varphi}$. In this case the two-dimensional subspace $\mS$ spanned by $\ket{\varphi}$ and $P\ket{\varphi}$ is stable under $P$, because being a projection $P$ satisfies $P^2=P$. Moreover, by
 ~\eqref{eq:pq} we see that $Q\ket{\varphi}$ lies in $\mS$, and  
 \[ Q P \ket{\varphi} \,=\, Q (\lambda \ket{\varphi}  - Q \ket{\varphi}) = (\lambda-1)Q \ket{\varphi}\]
 is also in that subspace. Using that $P$, $Q$ are projections and that $P$ is neither $0$ nor the identity on $\mS$ (otherwise we would have been in the first case) it follows that there is a basis of $\mS$ such that in that basis, 
@@ -123,7 +123,7 @@ where for arbitrary operators $A,B$ on $\mH$, $[A,B]=AB-BA$ denotes the algebra 
 
 The commutation condition (ii) indeed implies that measurements on different qubits can be performed ``independently''. For example, the expectation of a measurement of qubit $2$ in the Hadamard basis \emph{after} qubit $1$ has been measured in the computational basis is given by (where we write $X_1 = X_1^0 - X_1^1$ for the spectral decomposition of the observable $X_1$)
 \begin{align*}
-\frac{1}{2} \bra{\psi} X_1^0 Z_2 X_1^0 \ket{\psi} + \frac{1}{2} \bra{\psi} X_1^1 Z_2 X_1^1 \ket{\psi} &= \bra{\psi} X_1 Z_2 X_1 \ket{\psi} \\
+\bra{\psi} X_1^0 Z_2 X_1^0 \ket{\psi} + \bra{\psi} X_1^1 Z_2 X_1^1 \ket{\psi} &= \bra{\psi} X_1 Z_2 X_1 \ket{\psi} \\
 &= \bra{\psi}  Z_2 X_1^2 \ket{\psi}\\
 &= \bra{\psi}  Z_2  \ket{\psi}\;,
 \end{align*}
@@ -180,7 +180,7 @@ Suppose that $X$ and $Z$ are binary observables on $\mH$ such that $\|\{X,Z\}\|\
 The exercise can be extended to consider $n$ approximate qubits, but the proof is more delicate as some work is needed to keep the errors under control. The following is shown in~\cite{chao2017overlapping}. 
 
 \begin{theorem}
-Let $X_1,Z_1,\ldots,X_n,Z_n$ be binary observables on $\mH$ and $\eps \geq 0$ such that $\eps/(1-\eps)^2 \leq 1/(64n)$ and $\|\{X_i,Z_i\}\|\leq \eps$ and $\|[S_i,T_j]\|\leq \eps$ for all $i\neq j \in \{1,\ldots, n\}$ and $S,T \in \{X,Z\}$. Then there exists  binary observables $X'_1,Z'_1,\ldots,X'_n,Z'_n$ on $\mH$ such that $\{X'_i,Z'_i\}=0$, $[S'_i,T'_j]=0$ and moreover $\|S'_j-S_j\| \leq 4n\eps/(1-\eps)^2 + \eps$ for all $i\neq j\in \{1,\ldots,n\}$ and $S,T\in\{X,Z\}$.
+Let $X_1,Z_1,\ldots,X_n,Z_n$ be binary observables on $\mH$ and $\eps \geq 0$ such that $\eps/(1-\eps)^2 \leq 1/(64n)$ and $\|\{X_i,Z_i\}\|\leq \eps$ and $\|[S_i,T_j]\|\leq \eps$ for all $i\neq j \in \{1,\ldots, n\}$ and $S,T \in \{X,Z\}$.\footnote{We slightly abuse notation in writing e.g.\ $S_i$ for $X_i$ when $S=X$.} Then there exists  binary observables $X'_1,Z'_1,\ldots,X'_n,Z'_n$ on $\mH$ such that $\{X'_i,Z'_i\}=0$, $[S'_i,T'_j]=0$ and moreover $\|S'_j-S_j\| \leq 4n\eps/(1-\eps)^2 + \eps$ for all $i\neq j\in \{1,\ldots,n\}$ and $S,T\in\{X,Z\}$.
 \end{theorem}
 
 The theorem shows that ``$n$ approximate qubits'' are close to ``$n$ exact qubits'' according to our definitions. Note that there is a dependence of the error on $n$, but not on the dimension of $\mH$. In~\cite{chao2017overlapping} it is shown by an explicit example that a linear dependence on $n$ is necessary. 

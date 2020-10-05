@@ -89,7 +89,7 @@ The proof that we gave easily extends to the approximate case.
 
 \begin{exercise}
 Say that $(\ket{\psi},X,Z)$ is an $\eps$-approximate qubit if $\|\{X,Z\}\ket{\psi}\|\leq \eps$. Show that for $W\in \{X,Z\}$, 
-\[ \big\|\big( X - \pi (\sigma_X \otimes \Id )\pi^{-1} \big)\ket{\psi}\big\|^2 \,\leq\, O\big(\sqrt{\eps}\big)\;.\] 
+\[ \big\|\big( W - \pi (\sigma_W \otimes \Id )\pi^{-1} \big)\ket{\psi}\big\|^2 \,\leq\, O({\eps})\;.\] 
 \emph{[Hint: Use $2(1-\sin\theta) \leq \sqrt{4\cos^2\theta}$ for $\theta\in[0,\pi)$.]}
 \end{exercise}
 
@@ -153,7 +153,7 @@ We claim that any prover that succeeds with probability $1$ in this protocol ``h
 \end{itemize}
 
 \begin{lemma}\label{lem:qubit-test-1}
-Suppose that a prover $P$ succeds with probability $1$ in the protocol. Then $P$ has a qubit. 
+Suppose that a prover $P$ succeeds with probability $1$ in the protocol. Then $P$ has a qubit. 
 \end{lemma}
 
 To connect the statement of the lemma to Definition~\ref{def:self-test} we could also try to say that in this protocol, the family of distributions $\{p(v'|\theta,v)=1_{v'=v}\}_{v,\theta\in\{0,1\}}$ ``self-tests'' a qubit. As we had predicted however, the protocol does not neatly fit the definition for multiple reasons: it is not a 1-round protocol, there is quantum communication, and the verifier maintains private information (the value $v$). 
@@ -178,7 +178,7 @@ Continuing our modeling effort, at step 4 of the protocol the prover has in its 
 With all this modeling in place we are ready to write a formal expression for the prover's success probability in the test. By definition it is 
 \begin{align}
 \Pr(v=v') &= \frac{1}{2}\big( \bra{{\psi}} (\proj{0} \otimes P^0_0) \ket{{\psi}} +  \bra{{\psi}} (\proj{1} \otimes P^0_1) \ket{{\psi}}\big)\notag\\
-&\qquad  + \frac{1}{2}\big( \bra{{\psi}}( \proj{+} \otimes P^1_0 )\ket{{\psi}} +  \bra{{\psi}} (\proj{0} \otimes P^1_1 )\ket{{\psi}} \big) \;.\label{eq:test1-1}
+&\qquad  + \frac{1}{2}\big( \bra{{\psi}}( \proj{+} \otimes P^1_0 )\ket{{\psi}} +  \bra{{\psi}} (\proj{-} \otimes P^1_1 )\ket{{\psi}} \big) \;.\label{eq:test1-1}
 \end{align}
 Here the factors $\frac{1}{2}$ represent the probabilities that the verifier chooses $\theta=0$ (measurement in the standard basis) and $\theta=1$ (measurement in the Hadamard basis) respectively, and inside each bracket each of the two terms represents the probability that the prover and verifier obtain the same measurement outcome $v=v'=0$ for the first term and $v=v'=1$ for the second. 
 Using the identities 
