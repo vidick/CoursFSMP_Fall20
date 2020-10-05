@@ -39,6 +39,7 @@ As a second example, $H$ could be the hypothesis that ``$P$ has the BB'84 state 
 Finally, a less formal but more interesting for us example is that we could consider $H$ to be the hypothesis that ``$P$ has a qubit.''. In this case we do not make use of the auxiliary inputs; completeness states that for any prover that does have a qubit (i.e.\ $P$ has access to observables $X,Z$ on $\mH$ such that $\{X,Z\}=0$) then there should be a way for it to succeed in the protocol, whereas soundness states that conversely, any prover that succeeds in the protocol must ``have a qubit.''
 
 \section{An operational definition of a qubit} 
+\label{sec:operational-qubit}
 
 Given an interactive experiment of the sort described in the previous section, how do we model the actions of an arbitrary prover in the protocol? At each stage of the protocol the prover receives a question $x\in \mX$ and is expected to provide an answer $a\in\mA$. Here $\mX$ and $\mA$ are finite sets that are specified by the protocol. Although in general these sets may vary depending on the round in the protocol, for convenience we can assume that it is always the same set of questions and of answers that is used. 
 
