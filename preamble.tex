@@ -5,8 +5,11 @@
 \usepackage{bm}
 \usepackage{times}
 \usepackage{amssymb,latexsym}
+\usepackage{enumitem}
 
-\newtheorem{theorem}{Theorem}
+\setlist[itemize]{noitemsep, topsep=0pt}
+
+\newtheorem{theorem}{Theorem}[chapter]
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{conjecture}[theorem]{Conjecture}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -42,10 +45,12 @@
 \newcommand{\Z}{\ensuremath{\mathbb{Z}}}
 
 \newcommand{\mA}{\mathcal{A}}
+\newcommand{\mB}{\mathcal{B}}
 \newcommand{\mC}{\mathcal{C}}
 \newcommand{\mH}{\mathcal{H}}
 \newcommand{\mS}{\mathcal{S}}
 \newcommand{\mX}{\mathcal{X}}
+\newcommand{\mY}{\mathcal{Y}}
 
 \newcommand{\setft}[1]{\mathrm{#1}}
 \newcommand{\State}{\setft{S}}

@@ -1,0 +1,324 @@
+\chapter{Testing a qubit under spatial assumptions}
+
+\com{To insert a comment, use the macro ``$\backslash \text{com}\{\cdot\}$''}
+
+In this lecture we introduce a new assumption in addition to our overarching assumption that all parties in a protocol can be modeled using quantum mechanics; as argued in the previous lecture additional assumptions are necessary to develop a test for a qubit with classical verifier. In physical terms our new assumption consists in requiring that the device that is being tested is made of two parts that are ``physically isolated,'' in the sense that no communication can take place between the two parts for the duration of the protocol. For the case where the protocol consists of a single round of interaction (a question from the verifier and an answer from the prover) one can imagine enforcing this assumption by e.g.\ placing the provers and verifier on a line $P_1-V-P_2$ and ensuring that the round-trip interaction between the verifier and either prover takes place sufficiently fast that the verifier is confident, based on relativistic considerations (information does not travel faster than light), that no information can be exchanged between the provers between the times when they receive their question and have to send their answer. Mathematically, the assumption is reflected by modeling the device's Hilbert space $\mH$ as $\mH_\reg{A} \otimes \mH_\reg{B}$ and writing that each sub-device's observables act on its Hilbert space only. Following tradition we will use the symbols $\reg{A}$ and $\reg{B}$ to denote ``registers'' (a word loosely used to refer to the physical substrate modeled by the mathematical Hilbert space) associated with each device and, oftentimes personify the devices as ``provers'' or ``players'' with the lovely names of  ``Alice' and ``Bob'' respectively. 
+
+As we will see in this lecture as well as in the last third of the course this assumption of ``localization'' allows the verifier to gain much leverage over the device. Some intuition for this may be gained from thinking about a situation where a detective (the verifier) interrogates two suspects (the provers). Clearly the detective has more leverage over the suspects if she interrogates them in isolation and cross-examines their answers. Be warned however that this intuition only goes so far, because it only explains why interactive proofs with two provers may be more powerful than single-prover interactive proofs; it does not give insight into why specifically quantum aspects of the provers may manifest themselves in this framework. The fact that quantum mechanics allows a broader set of behavior for the provers than classical mechanics does is evidenced in the EPR paradox~\cite{einstein1935can}, whose authors puzzle over the ``non-local'' nature of quantum mechanics. A precise framework for describing this non-locality was set in place by Bell~\cite{bell1964einstein} who identified simple ``inequalities'' that separate classical from quantum behavior in bipartite scenario. Here we take the modern tack on Bell's inequalities and introduce them directly through the framework of nonlocal games. 
+
+\section{Nonlocal games}
+
+A non-local game is a cooperative game of imperfect information between a referee and two players. The referee is a trusted party that executes the game by sending a question to each player, collecting answers from them, and deciding whether the players' answers satisfy a winning criterion. The rules of the game (the distribution on questions used by the referee, the possible answers, the winning criterion) are public and known to the players, who cooperate in order to maximize their chances of winning. The only source of uncertainty is that each player is only revealed their question, but not the other's; this point is what makes the difference between a single-player and a multi-player game. 
+
+\begin{remark}
+To make the connection with interactive proof systems of the kind that we described in the previous lecture, somewhat informally a \emph{multi-prover interactive proof system}for a language $L$ is specified by a collection of non-local games $\{G_x\}_{x\in\{0,1\}^*}$, one for each possibe input $x$. These games should have the property that if $x\in L$ then there is a strategy for the players that succeeds with high probability (this is the completeness property) and if $x\notin L$ then no strategy will make them win with high probability (the soundness property).\footnote{For a formal connection between interactive proofs and games one would also have to insist that the games be ``uniformly generated'' from $x$, and that the verifier in each game is described by a circuit of size $\poly(|x|)$.} In the notes we freely interchange between the terminology of non-local games, referees and players and that of interactive proofs, verifier and prover depending on context. 
+\end{remark}
+
+For the sake of concreteness let us see an example. Consider the language $L$ that is the collection of all strings $x$ such that $x$ represents a system of linear equations  $\varphi$  in three variables each such that the system is satisfiable.\footnote{In the following we use the notation $\varphi$ and $x$ interchangeably: we think of $x$ as a string of bits and $\varphi$ as a formula, but we assume fixed an efficiently computable bijection between the two.} For example, $\varphi$ could be ``$y_1 y_2  y_3 = +1\,\text{AND}\, y_2  y_3  y_4 = -1$,'' which is obviously satisfiable. (We adopt a multiplicative notation, with variables in $\{\pm 1\}$, for later convenience.) Now suppose that we don't know the Gaussian elimination algorithm, so that solving a given system $\varphi$ may seem hard to us. Instead, let's make the provers work and design an interactive proof systems for the hypothesis ``$\varphi$ is satisfiable''. 
+
+Here is a first candidate, which involves a single prover:
+\begin{enumerate}
+\item The verifier sends $\varphi$ to the prover.\footnote{In the theory of interactive proof systems it is always assumed that the prover has access to the instance that is being decided, so this step is not necessary.}
+\item The prover returns a $\{\pm 1\}$-valued assignment $(y_1,y_2,\ldots)$ to all variables in $\varphi$.
+\item The verifier accepts if and only if the assignment satisfies $\varphi$. 
+\end{enumerate}
+This proof system has completeness $1$ (if there is a solution, a prover that sends it will be accepted with probability $1$) and soundness $0$ (if there is no solution, no prover has any chance of being accepted). Unfortunately, while the verifier is more efficient than e.g.\ Gaussian elimination she still has to read a lot of information in order to make her decision.\footnote{It is possible to argue that for a proof system of this form it is necessary for the prover to send a total number of bits that scales linearly with the length of an NP (i.e.\ non-interactive) proof for the same statement, see e.g.~\cite{goldreich2001interactive}.} In keeping with our goal of making verifiers more efficient, let's see a more succinct proof system with two provers. Let $\varphi$ consist of equations $E_1,\ldots,E_m$ such that $E_j$ has the form $y_{j_1} y_{j_2} y_{j_3}  = c_j$ with $c_j\in\{\pm 1\}$ and $j_1,j_2,j_3\in\{1,\ldots,n\}$ with $n$ the total number of variables. 
+\begin{enumerate}
+\item The verifier selects $j \in \{1,\ldots,m\}$ uniformly at random and $k\in\{1,2,3\}$ uniformly at random. She sends $j$ to the first prover and $j_k$ to the second, where $j_k$ is the index of the $k$-th variable on which clause $E_j$ acts in some canonical ordering. (Importantly, this ordering hides $k$, i.e.\ the prover only knows that its variable appears in \emph{some} clause, but not which clause or which position the variable appears in it.)
+\item The first prover returns a triple $(a_1,a_2,a_3)\in \{\pm 1\}$. The second prover returns a value $b\in \{\pm 1\}$. 
+\item The verifier accepts if and only if \emph{(consistency check:)} $a_k = b$ and \emph{(equation check:)} $a_1a_2a_3=c_j$. 
+\end{enumerate}
+We make the following claim regarding completeness and soundness of this proof system:
+
+\begin{claim}\label{claim:3xor-class}
+The two-prover proof system described above has completeness $1$ and soundness at most $1-\frac{1}{3m}$, where $m$ is the number of clauses in the input $3$XOR formula. 
+\end{claim}
+
+Note that while our proof system brought us gains in terms of communication, the soundness has degraded quite substantially, from $0$ to $1-\frac{1}{3m}$. It is possible to obtain improved variants of this proof system that have roughly similar communication complexity but much better soundness, say $\frac{1}{100}$ or even less. However, this requires much more work and is essentially the content of the \emph{PCP theorem}, to which we will return in the last part of the course. 
+
+\begin{proof}
+The completeness is easy to verify. For soundness, consider an arbitrary strategy for the two provers that succeeds with some probability $p$. In order to analyze this strategy we first need to accomplish the usual modeling step: how do we represent a two-prover strategy? The most ``na\"ive'' way to do so is to use a representation of each prover as a function from questions to answers and declare that the provers' joint strategy is the combination (direct product) of these functions: the first prover, Alice, employs a function $f_A: \{1,\ldots,m\} \to \{\pm 1\}^3$ and the second prover, Bob, a function $f_B:\{1,\ldots,n\}\to\{\pm 1\}$; their joint strategy is simply the function $f=(f_A,f_B)$ that goes from pairs of questions $(x,y)$ in the protocol to pairs of answers $(a,b)$. 
+If one gives a little more thought to the question then it is not at all obvious that this is the right answer. Nevertheless, let's postpone any further thinking for now and finish the proof of the claim using this model for the provers. 
+
+Fix a strategy $(f_A,f_B)$ of this form for the provers. We distinguish two cases. Either the strategies ``match'', meaning that for any clause $E_j$ it holds that 
+\begin{equation}\label{eq:3xor-class-1}
+f_A(j)\,=\,(f_B(j_1),f_B(j_2),f_B(j_3))\;,
+\end{equation}
+ where $y_{j_1}$, $y_{j_2}$, $y_{j_3}$ are the three variables involved in $E_j$. In this case we interpret the list of values $f_B(1),\ldots,f_B(n)$ as an assignment to the $n$ variables of $\varphi$. Since by assumption $\varphi$ is not satisfiable there must exist a $j$ such that $(f_B(j_1),f_B(j_2),f_B(j_3))$ do not satisfy clause $E_j$. By~\eqref{eq:3xor-class-1}, $f_A(j)$ does not satisfy $E_j$ either. Hence whenever the verifier sends a question of the form $(j,k)$ for $k\in \{j_1,j_2,j_3\}$ the provers fail in the equation check. 
+
+In the second case, the strategies do not match, i.e.\ there is a pair $(j,k)\in \{1,\ldots,m\}\times\{1,2,3\}$ such that the $k$-th entry of $(f_A(j))$ does not match $f_B(j_k)$. In this case the provers fail in the consistency check when the question $(j,k)$ is sent. 
+
+In all cases there is at least one question on which the provers must fail one of the verifier's checks. Since there are $3m$ possible questions  in total and the verifier's distribution on them in uniform this completes the proof of the claim. 
+\end{proof}
+
+\section{Non-local strategies}
+
+In the proof of Claim~\ref{claim:3xor-class} we were faced with the problem of modeling precisely how the assumption that the provers do not communicate affects the class of strategies that they may employ. While we dodged the question there, let's turn to it more seriously now. First of all, note that the object we are trying to represent is a family of bipartite conditional probability distributions $\{p(\cdot,\cdot|x,y)\}_{x,y\in \mX\times\mY}$ over $\mA\times \mB$, where $\mX,\mY$ and $\mA,\mB$ are finite sets of questions and answers respectively associated with each player. The question then is, \emph{what families of bipartite conditional distributions can be generated by non-communicating provers?} (equivalently, players, devices, etc.) 
+
+\subsection{Classical and non-signaling correlations}
+
+Let's examine two extremes. The first extreme is to require that each prover performs an entirely local computation. In this case the first prover's answer $a_1$ to their question $x_1$ is determined by a function $f_1:\mX \to \mA$, and similarly for the second prover. This is the answer that we adopted in the proof of Claim~\ref{claim:3xor-class}. More generally, being familiar with randomized computation we could allow each prover to make use of a randomized computation, in which case their respective input-output behavior can be modeled by a family of conditional distributions $\{p_\reg{A}(\cdot|x)\}_{x\in \mX}$ on $\mA$, and similarly for the second prover. The joint distributions of answers that they provide to the verifier would then be required to factorize as 
+\begin{equation}\label{eq:factor}
+\forall (x,y)\in\mX\times\mY\;,\quad\forall (a,b)\in\mA\times\mB\;,\qquad p(a,b|x,y)\,=\,p_\reg{A}(a|x)p_\reg{B}(b|y)\;.
+\end{equation}
+Since we allowed randomness it may also be natural to allow the randomness to be shared, i.e.\ allow the more general class of distributions that can be represented as 
+\begin{equation}\label{eq:factor-2}
+\forall (x,y)\in\mX\times\mY\;,\quad\forall (a,b)\in\mA\times\mB\;,\qquad p(a,b|x,y)\,=\,\int_\lambda p_\reg{A}(a|x,\lambda)p_\reg{B}(b|y,\lambda) d\lambda\;,
+\end{equation}
+where $\lambda$ ranges over any measurable set and for each $\lambda$, $\{p_{\reg{A}}(\cdot|x,\lambda)\}_{x\in\mX}$ is a family of conditional distributions on $\mA$, and similarly for the other prover. It is not hard to see that the proof of Claim~\ref{claim:3xor-class} generalizes to this case: briefly, this is because for a strategy of the form~\eqref{eq:factor-2} to succeed with probability $p$ in the protocol it is necessary that the product strategy obtained by fixing $\lambda$ succeeds with probability $p$ for at least some choice of $\lambda$.  
+
+The second extreme is to allow the most general family of bipartite conditional distributions that does not ``imply communication''. A natural formalization of the latter requirement, usually referred to as the ``non-signaling assumption'' on $p$, is that for every $a,x$ and $y,y'$, 
+\begin{equation}\label{eq:ns-cond}
+ \sum_{b}\, p(a,b|x,y)\,=\, \sum_{b}\, p(a,b|x,y')\;.
+\end{equation}
+In words, the answer $a$ given by the first prover should have a marginal distribution that is independent of the question $y$ given to the second prover. Of course, a symmetric condition should hold with the provers' roles exchanged. 
+
+At first it may seem that these two extreme classes ``ought to'' be the same. Are there distributions that satisfy~\eqref{eq:ns-cond} but are not of the form~\eqref{eq:factor-2}? The answer is yes. Here is a simple example:  let $\mX = \mY = \mA=\mB = \{0,1\}$. For $(x,y)\neq (1,1)$ let $p(\cdot,\cdot | x,y)$ be uniform over $\{(0,0),(1,1)\}$. For $(x,y)= (1,1)$ let $p(\cdot,\cdot | x,y)$ be uniform over $\{(0,1),(1,0)\}$. It is easy to see that this distribution cannot be expressed in factorized form, or even as a convex combination of factorized forms as in~\eqref{eq:factor-2}. (Showing this is a good exercise which we leave to the reader.\footnote{Hint: ``fix the randomness'' and consider the  values that each prover returns to each of their two possible questions. Show that these four values together cannot all lie exclusively among the allowed pairs for all four possible pairs of questions.}) However, the distribution clearly satisfies~\eqref{eq:ns-cond} since all marginals are uniform. We will see another example in Section~\ref{sec:ms-game}.
+
+Having observed that there are at least two possible models for the ``non-communicating provers,'' which one is it most appropriate? Conventionally we call the first model ``classical'' because it can be realized physically using local computation only, together with possibly a source of shared randomness. The second model is called ``non-signaling'' and is considered non-physical even though it does not strictly violate the no-communication assumption, because we do not have a credible physical theory in which arbitrary distributions in that model can be generated at locations that are space-time isolated (in other words, there is no physical theory that allows us to describe an experiment which would be able to generate any kind of correlation that is in principle allowed by special relativity; there are other constraints that relativity itself does not provide a means to model). Interestingly, the kind of correlations that can be generated by \emph{quantum} provers lies strictly in-between the two extremes. Let's explore those correlations next. 
+
+\subsection{Quantum (tensor product) correlations}
+
+The most natural way to measure spatial isolation in non-relativistic quantum mechanics is to associate a distinct Hilbert space with each device (or prover), $\mH_\reg{A}$ for Alice and $\mH_{\reg{B}}$ for Bob, such that the joint Hilbert space is $\mH = \mH_\reg{A} \otimes \mH_\reg{B}$. Upon receiving a question $x$ the first prover performs a POVM $\{A^x_a\}_{a\in\mA}$ on $\mH_\reg{A}$ to obtain an outcome $a$ that it sends back to the verifier; similarly, the second prover performs a POVM $\{B^y_b\}_{b\in\mB}$ to obtain its answer $b$. The class of correlations that can be generated in this model is all families of bipartite conditional distributions that take the form
+\begin{equation}\label{eq:tensor-model} 
+p(a,b|x,y)\,=\, \bra{\psi} A^x_a \otimes B^y_b \ket{\psi}\;,
+\end{equation}
+where $A^x_a$ and $B^y_b$ are as above and $\ket{\psi} \in \mH_\reg{A} \otimes \mH_\reg{B}$ is an arbitrary state. We will succinctly write $(\ket{\psi},A,B)$ to represent a triple of a bipartite state and families of POVM measurements on each subsystem as above, and refer to such a triple as a \emph{strategy} for a given two-player game. 
+
+\begin{definition}
+Given a two-player one-round\footnote{A non-local game, just as an interactive proof system, can in principle involve multiple rounds of interaction. Here we always always restrict ourselves to the single-round case, that is simpler to analyze and captures everything that we need.} game $G$ with question sets $\mX$ and $\mY$ and answer sets $\mA$ and $\mB$, a \emph{strategy} for $G$ is a triple $(\ket{\psi},A,B)$ where $\ket{\psi} \in \mH_\reg{A} \otimes \mH_\reg{B}$ is a quantum state on the tensor product of finite-dimensional Hilbert spaces $\mH_\reg{A}$ and $\mH_{\reg{B}}$ and $A = \{A^x\}$ and $B=\{B^y\}$ are collections of POVM $\{A^x_a\}$ and $\{A^y_b\}$ on $\mH_\reg{A}$ and $\mH_\reg{B}$ respectively, for every $x\in \mX$ and $y\in \mY$. 
+\end{definition}
+
+As a sanity check we can verify that~\eqref{eq:tensor-model} allows us to recover~\eqref{eq:factor-2}. To see this, set $\mH_\reg{A}$ and $\mH_\reg{B}$ to be separable Hilbert spaces with a basis indexed by all possible values of $\lambda$,\footnote{Assume for simplicity that the probability space is countable.} $\ket{\psi} = \sum_{\lambda \in \Omega} \sqrt{p_\lambda} \ket{\lambda}_\reg{A} \ket{\lambda}_\reg{B}$, $A^x_a = \sum_\lambda p_\reg{A}(a|x,\lambda) \proj{\lambda}_\reg{A}$, and similarly for $B^y_b$. One immediately verifies that these define valid POVM and that they lead to the desired correlation~\eqref{eq:factor-2}. Moreover, the POVM condition $\sum_b B^y_b = \Id$ for all $y$ implies that the correlations~\eqref{eq:tensor-model} always satisfy the no-signaling condition~\eqref{eq:ns-cond}. 
+ However, the model is strictly more general than the classical model~\eqref{eq:factor-2}, as we show next by identifying a non-local game in which the use of quantum correlations leads to a strictly higher winning probability than classical correlations could. (It is also possible to show that it is not as general as the non-signalling model, as the example of a non-signaling correlation given above cannot be realized in quantum mechanics.)
+
+\section{Binary Linear System Games}
+
+For this section we borrow some material from the lecture notes by Richard Cleve available at this \href{http://cleve.iqc.uwaterloo.ca/resources/Qic890LectureNotes2019Apr22(V22).pdf}{url}. 
+
+\medskip
+
+Binary linear system games, or BLS games for short, are a class of two-player one-round  games introduced in~\cite{cleve2014characterization} and inspired by Mermin's proofs of Bell's theorem~\cite{mermin1990simple,mermin1993hidden}. These games  capture the flavor of the ``clause-vs-variable'' $3$XOR game considered in the previous section. 
+
+\begin{definition}\label{def:bls-game}
+A BLS game is specified by integers $m,n\geq 1$, a matrix $E\in \{0,1\}^{m\times n}$ and a vector $c\in\{\pm 1\}^m$. (This information is available to both the referee and the players in the game.) The game proceeds as follows:
+\begin{enumerate}
+\item The referee samples $j\in\{1,\ldots,m\}$ uniformly at random and sends $j$ to the first player. Let $\ell$ be the number of nonzero entries in the $j$-th row of $E$. The referee samples $k\in\{1,\ldots,\ell\}$ uniformly at random and sends the index of the $k$-th nonzero entry of the $j$-th row of $E$ to the second player. 
+\item The referee expects answers $(a_1,\ldots,a_\ell)\in\{\pm 1\}^\ell$ from the first player and $b\in\{\pm 1\}$ from the second. 
+\item The referee declares that the players win if and only if both the following conditions hold: \emph{(consistency check:)} $a_k = b$ and \emph{(equation check:)} $\prod_{i} a_i = c_j$. 
+\end{enumerate}
+\end{definition}
+
+For the $3$XOR game the associated matrix $E$ has only $3$ nonzero entries per row, but for a general BLS game the number of nonzero entries is allowed to be arbitrary. 
+
+The class of BLS games has many interesting properties. In particular, there is a  direct correspondence between the existence of perfect strategies in different models and certain kinds of 'solutions' to the system of equations implied by $E$ and $c$. (Precisely, for $j\in \{1,\ldots,m\}$ the $j$-th row of $E$ and $c$ can be interpreted as a constraint $y_1^{E_{j,1}} \cdots y_n^{E_{j,n}} = c_j$ on $n$ variables $y_1,\ldots,y_n \in \{\pm 1\}$.)
+For the case of classical strategies, following the proof of Claim~\ref{claim:3xor-class} we easily see that the game has a perfect strategy if and only if the system of equations has a solution over $\{\pm 1\}$, which can be determined by Gaussian elimination. For quantum strategies in the model introduced above (i.e.\ the ``tensor product model''~\eqref{eq:tensor-model}) there is a correspondence between perfect strategies and ``operator solutions'' to the system of equations. This correspondence will allow us to make use of a specific BLS game called the ``Magic Square game'' in order to develop our first test of a qubit that can be executed by an entirely classical verifier. We introduce the Magic Square game in the next section. 
+
+\begin{remark}
+The correspondence between strategies and (operator) solutions goes further than the classical and tensor product models. In particular one can say interesting things about quantum strategies in an extended model called the ``commuting-operator model'', but we don't discuss this here. See for example~\cite{cleve2017perfect} and follow-up works. 
+\end{remark}
+
+\subsection{An example: the Magic Square game}
+\label{sec:ms-game}
+
+The Magic Square game is the following BLS game with $6$ constraints on $9$ variables. The constraints are best visualized by picturing the variables arranged in the entries of a $3\times 3$ square, as follows: 
+\[ \begin{matrix} y_1 & y_2 & y_3 & \quad & +1 \\  y_4 & y_5 & y_6 & \quad & +1 \\  y_7 & y_8 & y_9 & \quad & +1 \\ &&&&\\  +1 & +1 & -1 &  & \end{matrix}\]
+As indicated on the picture the $6$ constraints are that the product of all variables in any given row should equal $+1$ and that the product of all variables in any column should equal $+1$ \emph{except} for the last column, where it should equal $-1$. 
+
+This system of equations does not have a solution (make sure you can show this!), and so the associated  BLS game, as described in Definition~\ref{def:bls-game}, does not have a perfect classical strategy: it is not hard to see that the maximum success probability that classical players can achieve is $\frac{17}{18}$, matching the bound of Claim~\ref{claim:3xor-class}. 
+
+A remarkable fact is that there is a perfect quantum strategy for this game (``perfect'' means that the strategy succeeds with probability $1$ in the game).  This is remarkable because, as we just saw, the underlying system of equations \emph{does not have a solution}! Yet quantum players are able to \emph{always} give answers that are accepted by the referee. For this to be possible these answers necessarily have to be generated ``on the fly'', freshly every time a question is asked: if this were not the case then the same proof as that of Claim~\ref{claim:3xor-class} would apply. Quantum provers are able to win with certainty, yet there is no way to extract a satisfying assignment from them. What feature of the system of equations makes this possible? Can quantum provers win \emph{any} BLS game with probability $1$, irrespective of any truth value of the underlying system of equations? 
+
+To gain insight into this question let us describe an explicit quantum strategy for the players that succeeds with probability $1$. The key observation is that even though as we saw the system of equations associated with the magic square does not have a solution with values in $\{\pm 1\}$, it has an \emph{operator solution}
+\begin{equation}\label{eq:opsol-ms}
+ \begin{matrix} I\otimes \sigma_Z & \sigma_Z \otimes I & \sigma_Z \otimes \sigma_Z \\
+\sigma_X \otimes I & I \otimes \sigma_X & \sigma_X\otimes \sigma_X\\
+\sigma_X \otimes \sigma_Z & \sigma_Z \otimes \sigma_X & \sigma_Y \otimes \sigma_Y 
+\end{matrix}
+\end{equation}
+where $\sigma_Y = i\sigma_X\sigma_Z$. 
+Observe that in each row or column the three observables always commute; moreover, the product of the three observables in each row or column is always $+I$ except for the last column, where it is $-I$. This is what we mean by ``operator solution''.
+
+\begin{definition}
+An operator solution to a BLS $(E,c)$ is a collection of binary observables $Y_1,\ldots,Y_n$ on the same Hilbert space $\mH$ such that for each equation (specified by a row of $E$) $y_{j_1}\cdots y_{j_\ell} = c_j$ the observables $Y_{j_1},\ldots,Y_{j_\ell}$ commute and their product equals $c_j \Id$. 
+\end{definition}
+
+It is not too hard to show that for any BCS, an operator solution immediately translates into a perfect quantum strategy for it. 
+
+\begin{lemma}\label{lem:bcs-perfect}
+Suppose given an operator solution $Y_1,\ldots,Y_n$ to a BLS $(E,c)$ such that each $Y_j$ is a binary observable on a finite-dimensional Hilbert space $\mH$. Then the following strategy succeeds with probability $1$ in the BLS game:
+\begin{itemize}
+\item The players share the \emph{maximally entangled} state 
+\begin{equation}\label{eq:psi-bls}
+ \ket{\psi}_{\reg{AB}} = \frac{1}{\sqrt{d}} \sum_{i} \ket{i}_{\reg{A}} \otimes \ket{i}_{\reg{B}} \in \mH_\reg{A} \otimes \mH_\reg{B}\;,
+\end{equation}
+ where $d$ is the dimension of $\mH$, each of $\mH_\reg{A}$ and $\mH_\reg{B}$ is a copy of $\mH$, and $\{\ket{i}\}$ an orthonormal basis for it.\footnote{The maximally entangled state is a natural generalization of the EPR pair which can be defined on any tensor product of (finite-dimensional) isomorphic Hilbert spaces.}
+\item On question $j$, Alice sequentially measures the observables $Y_{j_1},Y_{j_2},\ldots,Y_{j_\ell}$ on her share of $\ket{\psi}$, where $j_1,\ldots,j_\ell$ are the indices of the nonzero entries of the $j$-th row of $E$. She obtains outcomes $a_1,\ldots,a_\ell$ that she returns as her answer. 
+\item On question $k \in \{1\ldots,n\}$ Bob measures the observable $Y_{k}^T$ on his share of $\ket{\psi}$. He obtains an outcome $b\in\{\pm 1\}$ that he returns as his answer. 
+\end{itemize}
+\end{lemma}
+
+\begin{proof}
+First we note that the strategy described in the lemma is valid: since by definition of an operator solution the observables $Y_{j_1},Y_{j_2},\ldots,Y_{j_\ell}$ always commute it is possible for Alice to measure them simultaneously. 
+
+The following relation holds the key to the proof: for any operators $A$ on $\mH_\reg{A}$ and $B$ on $\mH_\reg{B}$ it holds that 
+\begin{equation}\label{eq:me-ab}
+\bra{\psi} A\otimes B \ket{\psi} \,=\, \frac{1}{d}\Tr(AB^T)\;,
+\end{equation}
+where $\ket{\psi}$ is as in~\eqref{eq:psi-bls}. 
+This relation follows easily from the relation $(\Id\otimes B)\ket{\psi} = (B^T \otimes \Id) \ket{\psi}$ that we saw in the previous lecture and the fact that the reduced density matrix of $\ket{\psi}$ on either subsystem is the totally mixed stated $d^{-1}\Id$. Using this relation it is a matter of direct calculation to verify that the prover's answers always satisfy the verifier's checks in the game. In more detail, 
+\begin{itemize}
+\item For the consistency check, we note that the probability that the two players return consistent answers on question $(j,k)$ is 
+\[ \frac{1}{2}+\frac{1}{2}\bra{\psi} Y_{j_k} \otimes Y_{j_k}^T \ket{\psi} \,=\, \frac{1}{2}+\frac{1}{2}\frac{1}{d} \Tr\big(Y_{j_k}^2\big) \,=\, 1\;,\]
+where the first equality follows from~\eqref{eq:me-ab} and the second holds since $Y_{j_k}$ is a binary observable so $Y_{j_k}^2 = \Id$. 
+\item For the equation check, we note that the probability that Alice's answers satisfy the check for the $j$-th equation is 
+\[ \frac{1}{2}+\frac{c_j}{2}\bra{\psi} Y_{j_1}\cdots Y_{j_\ell} \otimes \Id \ket{\psi} \,=\,\frac{1}{2}+\frac{c_j}{2} \bra{\psi} c_j\Id \otimes \Id \ket{\psi}\,=\,1\;,\]
+where the first equality holds since $Y_{j_1}\cdots Y_{j_\ell} =c_j\Id$ by definition of an operator solution.
+\end{itemize}
+\end{proof}
+
+\begin{remark}
+The reader will have noticed that in Lemma~\ref{lem:bcs-perfect} we carefully added the assumption that the operator solution is finite-dimensional, and indeed this seems necessary for the state $\ket{\psi}$ to be well-defined. It is possible to show that infinite-dimensional operator solutions to a BLS correspond to \emph{commuting-operator} strategies for the associated game, and conversely; this correspondence is established in~\cite{cleve2017perfect}. Commuting-operator strategies are a strict superset of tensor-product strategies  
+\end{remark}
+
+Combining Lemma~\ref{lem:bcs-perfect} with the operator solution to the magic square given by~\eqref{eq:opsol-ms} we obtain a perfect strategy for the magic square game that uses two qubits per player, and two EPR pairs shared between them. Since we saw that the magic square does not have a perfect strategy this strategy gives us another example of a non-signaling correlation that is not classical. 
+
+\subsection{Characterization of optimal strategies}
+
+The following converse to Lemma~\ref{lem:bcs-perfect} is shown in~\cite{cleve2014characterization}. 
+
+\begin{lemma}\label{lem:bcs-tensor}
+Suppose given a BLS $(E,c)$ and a strategy $(\ket{\psi},A,B)$ for the associated game that succeeds with probability $1$. Then the BLS has a finite-dimensional operator solution. 
+\end{lemma}
+
+\begin{proof}
+We give the proof for the special case of the Magic Square game, as the general case is similar. We start with the modeling step: a strategy $(\ket{\psi},A,B)$ for the magic square game is given by a bipartite state $\ket{\psi} \in \mH_\reg{A} \otimes \mH_\reg{B}$ for finite-dimensional $\mH_\reg{A}$ and $\mH_{\reg{B}}$ as well as the following measurements. For the first player (Alice), for each row or column $x$ there is a $9$-outcome projective measurement $\{A^x_a : a\in\{\pm 1\}^3\}$ on $\mH_\reg{A}$. For the second player (Bob), for each variable (square) $y$ there is an observable $B_y$ on $\mH_\reg{B}$. 
+
+For the proof we make the simplifying assumption that the state $\ket{\psi}$ has full support, in the sense that its reduced density on either subsystem is invertible. In general this assumption is not ``without loss of generality'', especially since we may have applied Naimark's theorem to make the player's measurements projective as assumed above, as this in general leads to a state that does not have full support. Nevertheless for the case of the present proof it is possible without too much work to reduce the general case to the ``projective, full-support'' case. We we refer to the proof of ``Case 2'' of Theorem 1 in~\cite{cleve2014characterization} for details. 
+
+To each of Alice's questions we can associate three observables that correspond to the three bits of her answer. For example, for question $j=1$ (first row) we can define 
+\[ A_1 = \sum_{a_1,a_2,a_3\in \{\pm 1\}}  (-1)^{a_1} A^1_{a_1a_2a_3}\;,\quad   A_2 = \sum_{a_1,a_2,a_3\in \{\pm 1\}}  (-1)^{a_2} A^1_{a_1a_2a_3}\;,\quad  A_3 = \sum_{a_1,a_2,a_3\in \{\pm 1\}}  (-1)^{a_3} A^1_{a_1a_2a_3}\;.\]
+We can similarly proceed to define $A_4,\ldots,A_9$ from the rows and $A'_1,\ldots,A'_9$ from the columns. Next we show that success with probability $1$ in the consistency checks implies that 
+\begin{equation}\label{eq:bcs-tensor-1}
+\forall y\in\{1,\ldots,9\}\;,\qquad A_y = A'_y = B_y^T\;.
+\end{equation} 
+Take for example the consistency check on question $(1,2)$ (first row to Alice, second entry to Bob). It is easy to show that success in that check implies that 
+\begin{equation}\label{eq:bcs-tensor-2}
+\bra{\psi} A_2 \otimes B_2^T \ket{\psi}=1\;.
+\end{equation}
+ We use the following claim.
+
+\begin{claim}\label{claim:ab-state}
+Suppose that $\ket{\psi}$ is a bipartite state with full support and $A,B$ observables such that $\bra{\psi} A\otimes B \ket{\psi} = 1$. Then $A=B^T$. 
+\end{claim}
+
+\begin{proof}[Proof sketch]
+Write the Schmidt decomposition $\ket{\psi} = \sum_t \lambda_t \ket{u_t} \ket{v_t}$. Let $K = \sum_t \lambda_t \ket{u_t}\bra{v_t}$. Then the equality $\bra{\psi} A\otimes B \ket{\psi} = 1$ is equivalent to $AKB^T = K$. Identifying left and right eigenspaces we see that $A$ and $B$ must each preserve the eigenspaces of $K$ associated with any given eigenvalue. Thus $AKB^T = K$ decomposes in block form $\oplus_\lambda  A_\lambda B_\lambda^T = \Id_\lambda$, where for each block we indicated with a subscript $\lambda$ the restriction of each operator to the eigenspace of $K$ associated with eigenvalue $\lambda$. This shows the claim.  
+\end{proof}
+
+Using Claim~\ref{claim:ab-state} and the implications of the form~\eqref{eq:bcs-tensor-2} for the consistency checks,~\eqref{eq:bcs-tensor-1} follows. To conclude we claim that $B_1^T,\ldots,B_9^T$ are an operator solution to the Magic Square. Commutation in each row or column follows from~\eqref{eq:bcs-tensor-1} and the definition of the $A_y$ (which by definition commute by rows) and $A'_y$ (by columns). The constraints follow from the fact that e.g. for the first row, $\bra{\psi} A_1 A_2 A_3 \otimes \Id\ket{\psi} = +1$, which using Claim~\ref{claim:ab-state}  implies that $A_1A_2A_3 = \Id$ and hence $B_1^T B_2^T B_3^T = \Id$. (Of course we could remove the transpose signs and still have a valid solution.)
+\end{proof}
+
+\section{A nonlocal test for a qubit}
+
+We now have everything that we need in order to give our first classical-verifier test for a qubit (in fact, as we will see, for two qubits!). To motivate this, observe that the proof of Lemma~\ref{lem:bcs-tensor} says a bit more than is stated in the lemma itself: not only did we show that the Magic Square has an operator solution, we also exhibited such a solution directly from the second player's observables in the game. Let's show the following simple fact. 
+
+\begin{claim}\label{claim:ms-ac}
+Suppose given an operator solution $Y_1,\ldots,Y_9$ to the magic square. Then $Y_2$ and $Y_4$ anti-commute. 
+\end{claim}
+
+\begin{proof}
+We first rewrite the product $Y_2Y_4$ by rows to obtain 
+\begin{align*}
+Y_2 Y_4 &= Y_1 Y_3\cdot   Y_6 Y_5 \\
+&= Y_1 \cdot Y_9 \cdot Y_5\;,
+\end{align*}
+where the second line is by the last column constraint. Next we write the product $Y_4 Y_2$ by columns: 
+\begin{align*}
+Y_4 Y_2 &=  Y_1 Y_7 \cdot Y_8 Y_5  \\
+&= Y_1 \cdot (-Y_9) \cdot Y_5 \;,
+\end{align*}
+where the second line is by the last row constraint. Combining both equations it follows that $Y_2 Y_4 = -Y_4 Y_2$, as claimed. 
+\end{proof}
+
+The following lemma is immediate from the proof of Lemma~\ref{lem:bcs-tensor} and Claim~\ref{claim:ms-ac}. We state the lemma using the language of ``self-testing'' from the previous lecture. 
+
+\begin{lemma}\label{lem:ms-perfect}
+Suppose that two non-communicating quantum devices $A$ and $B$ generate correlations $p(a,b|x,y)$ that perfectly satisfy the referee's tests in the Magic Square game. Then the observables $B_1,\ldots,B_9$ that model the $B$ device's binary measurements on each possible input form an operator solution to the Magic Square.\footnote{To be fully precise, in the case where the state shared by the devices does not have full support one would need to restrict each observable to the support of $\ket{\psi}$; it is possible to show that under the assumption that the devices succeed with probability $1$ the support of $\ket{\psi}$ must be stable by each of the observables of device $B$.}
+In particular, the device's joint state $\ket{\psi}_\reg{AB}$ together with observables $B_2$ and $B_4$ of device $B$ associated with inputs $y=2$ and $y=4$ respectively form a qubit $(\ket{\psi},B_2,B_4)$. 
+\end{lemma}
+
+\begin{proof}
+The first part of the lemma follows from the proof of Lemma~\ref{lem:bcs-tensor}. By Claim~\ref{claim:ms-ac} the observables associated to $y=2$ and $y=4$ anti-commute. 
+\end{proof}
+
+The preceding lemma shows that two of device $B$'s observables, $B_2$ and $B_4$, must anti-commute. As we saw in Lemma~\ref{lem:qubit-c2}\footnote{Here we can apply the ``state-independent'' version of the qubit lemma because Lemma~\ref{lem:ms-perfect} states that the observables themselves satisfy the operator constraints. Once again, in case the state $\ket{\psi}$ shared by the devices does not have full support the conclusion would only apply to the restriction of the device's observables to the support of $\ket{\psi}$.} this means that up to an isomorphism on the device's space these observables must take the form $B_2 \simeq \sigma_Z \otimes \Id$ and $B_4 \simeq \sigma_Z \otimes \Id$, which is exactly the form that they take in the solution given in~\eqref{eq:opsol-ms}. What about the other observables? In other words, are the constraints that underlie the Magic Square game \emph{rigid}? 
+
+\begin{lemma}\label{lem:ms-perfect-rigid}
+Under the same assumptions as Lemma~\ref{lem:ms-perfect} there is a unitary $U$ on the space $\mH_\reg{B}$ associated with device $B$ such that the observables $U^\dagger B_k U$ for $k\in\{1,\ldots,9\}$ take the form described in~\eqref{eq:opsol-ms}. in particular, the dimension of (the support of $\ket{\psi}$ on) $\mH_\reg{B}$ is a multiple of $4$. 
+\end{lemma}
+
+\begin{proof}
+The main ingredient in this proof is the qubit lemma, Lemma~\ref{lem:qubit-c2}, together with Claim~\ref{claim:n-qubit-c2} which allows us to argue that observables that commute with $\sigma_Z$ and $\sigma_X$ on a copy of $\C^2$ must act as identity on $\C^2$.
+
+First note that the proof of Lemma~\ref{lem:ms-perfect} immediately extends to show that any two observables not in the same row or column anti-commute. Furthermore, by definition the condition that the $9$ observables $B_1,\ldots,B_9$ form an operator solution to the Magic Square implies that all observables in the same row or column must commute. Using this condition and the characterization of $B_2$ and $B_4$ given in Lemma~\ref{lem:ms-perfect} it follows from Claim~\ref{claim:n-qubit-c2} that $B_1 \simeq \Id \otimes B'_1$ and $B_5 \simeq \Id \otimes B'_5$, for some observable $B'_1$ and $B'_5$ on $\mH'$ that anti-commute. Using Lemma~\ref{lem:qubit-c2} again it follows that there is an isometry  $U'$ on $\mH'$ such that as operators on $\mH'$, $B'_1 \simeq \sigma_Z \otimes \Id$ and $B'_5 \simeq \sigma_X\otimes \Id$, with the identity acting on some new ancilla space $\mH''$ such that $\mH'\simeq \C^2 \otimes \mH''$. Combining $U$ and $U'$ together, we have shown that there is an isomorphism $U'U$ under which
+\[ \begin{matrix} B_1 \simeq \Id\otimes \sigma_Z \otimes \Id & B_2 \simeq \sigma_Z\otimes \Id \otimes \Id \\ B_4 \simeq \sigma_X\otimes \Id \otimes \Id & B_5 \simeq \Id\otimes \sigma_X \otimes \Id \end{matrix}\;.\]
+The remaining entries of the table are immediately filled in from the row and column constraints, which uniquely determine them.
+\end{proof}
+
+As a last step we show that we can also characterize the entangled state used by any strategy. Interestingly, this characterization comes as a consequence of the characterization of the observables, which we obtained without talking much about the state. This is based on the following general lemma, that we will often make use of. 
+
+\begin{lemma}\label{lem:epr-stable}
+Let $\ket{\psi}_{\reg{ABE}} \in (\C^2)_\reg{A}^{\otimes n} \otimes (\C^2)_\reg{B}^{\otimes n} \otimes \mH_\reg{E}$ be such that for every $i\in \{1,\ldots, n\}$ it holds that 
+\[\big(\sigma_{X,i}\big)_\reg{A} \otimes \big(\sigma_{X,i}\big)_\reg{B} \ket{\psi}_{\reg{ABE}} \,=\, \big(\sigma_{Z,i}\big)_\reg{A} \otimes \big(\sigma_{Z,i}\big)_\reg{B} \ket{\psi}_{\reg{ABE}} \,=\,\ket{\psi}_\reg{ABE}\;,\]
+where the Pauli operators act on the $i$-th copy of $\C^2$ in register $\reg{A}$ and $\reg{B}$ respectively. Then $\ket{\psi}_{\reg{ABE}} = \ket{\phi^+}^{\otimes n}_{\reg{AB}} \otimes \ket{aux}$, for some state $\ket{aux}$ on $\mH$. 
+\end{lemma}
+
+\begin{proof}
+Note that $\sigma_X\otimes \sigma_X$ and $\sigma_Z\otimes \sigma_Z$ commute, hence are simultaneously diagonalizable. 
+The proof immediately follows from the observation that the only simultaneous eigenvalue-1 eigenstate of $\sigma_X\otimes \sigma_X$ and $\sigma_Z\otimes \sigma_Z$ is the EPR pair $\ket{\phi^+}$. 
+\end{proof}
+
+\begin{exercise}
+Show that the conclusion of Lemma~\ref{lem:epr-stable} holds under the following weaker assumption: $\ket{\psi}_{\reg{ABE}} \in (\C^2)_\reg{A}^{\otimes n} \otimes \mH_\reg{B}^{\otimes n} \otimes \mH_\reg{E}$ with $\mH_\reg{B}$ arbitrary, and for every $i\in \{1,\ldots, n\}$,
+\[\big(\sigma_{X,i}\big)_\reg{A} \otimes \big(X_i\big)_\reg{B} \ket{\psi}_{\reg{ABE}} \,=\, \big(\sigma_{Z,i}\big)_\reg{A} \otimes \big(Z_i\big)_\reg{B} \ket{\psi}_{\reg{ABE}} \,=\,\ket{\psi}_\reg{ABE}\;,\]
+with $X_i$ and $Z_i$ arbitrary binary observables on $\mH_\reg{B}$ (in particular, we are not assuming any a priori qubit structure on $\mH_\reg{B}$). \emph{[Hint: Remember Claim~\ref{claim:qubit-test-1a}]}
+\end{exercise}
+
+
+\subsection{Consequences} 
+
+The characterization of perfect strategies given in Lemma~\ref{lem:ms-perfect-rigid} together with Lemma~\ref{lem:epr-stable} have some nice consequences. First of all, they imply that the Magic Square game tests not one, but two qubits: any perfect strategy must have a $4$-qubit entangled state, two qubits per player, and Bob's observables specify two qubits, e.g.\ $B_2$ and $B_4$ for the first and $B_1$ and $B_5$ for the second. We even have access to more: for example, we know that when Bob is asked question $9$ the observable he applies is $\sigma_Y \otimes \sigma_Y$. Although we clearly have some distance to go, these are first steps towards testing that Bob implements a certain computation; for now, we are able to test that he applies specific observables. 
+
+Another consequence of the characterization has to do with the problem of randomness certification. At this point we know that, in any perfect strategy, whenever Bob is asked question $2$ he measures the first qubit of an EPR pair in the standard basis. This has the following implications:
+\begin{enumerate}
+\item The answer reported by Bob on question $2$ (and, in fact, on \emph{any} question) is a uniformly random bit. In particular, no deterministic strategy can succeed in the game! We knew this already, because deterministic strategies are classical. As such, any game for which quantum strategies can succeed with strictly higher probability than classical strategies can serve as a ``test for randomness''.
+\item More importantly, the randomness that is generated by Bob at each execution of the game is ``fresh'' and ``private''. What we mean by this is that Bob's random bit is (1) independent of any information at the verifier's side, including Bob's question, and (2) uncorrelated to the environment. Indeed, since Bob's bit is the result of a measurement of half an EPR pair, the only party that can obtain correlated information is Alice, who holds the other half of the EPR pair. By the rigidity theorem this EPR pair \emph{must} be in control of Alice: she needs it for them to succeed in the game. Therefore the verifier has the guarantee that the bit she obtains (1) cannot have been ``planted'' \emph{a priori} in the devices, and (2) cannot be learned, even partially, by any third party distinct from $A$ and $B$, even if the party could a priori have kept entanglement with the devices---this is because, using the notation of Lemma~\ref{lem:epr-stable}, the third party would only at best have access to the entirety of system $\reg{E}$, which is uncorrelated with $\reg{AB}$. 
+\end{enumerate}
+These observations are important for cryptography, where the use of high-quality randomness that is uncorrelated from any possible eavesdropper or adversary is an essential resource. Indeed, the observations we just made form the basis for the so-called ``device-independent'' analysis of quantum cryptography protocols. 
+
+\begin{remark}
+We presented the fact that the Magic Square game tests two qubits, instead of one, as a ``feature''. But what if one only cares about a single qubit, is there a simple test for this? There is such a test, but it is not an BLS game: it is the CHSH game. The proof that this game tests a qubit was recognized early on, see e.g.~\cite{summers1987maximal} or~\cite{mckague2012robust} for a more modern treatment. Unfortunately the game does not have ``quantum completeness $1$'', in the sense that the optimal quantum strategy for it achieves a success probability that is greater than the optimal classical, but less than $1$ (precisely, it is $\cos^2 \pi/8 \approx 0.85$). This makes it less convenient to use as a building block in larger protocols, and so here we will stick with the Magic Square game that is the simplest value-$1$ game which self-tests at least one qubit that we know of. 
+\end{remark}
+
+An important drawback of our analysis so far is that it is limited to the case of perfect strategies, i.e.\ strategies that succeed with probability $1$ in the game. In practice one may only reasonably assume, after multiple executions of the game, that a given strategy succeeds with some probability that is close to one, $1-\eps$ for some $\eps\geq 0$ that can be made small but not $0$. In the next section we discuss how the results can be extended to that case. 
+
+\subsection{The approximate case}
+
+The following theorem gives the flavor of an approximate version of the lemmas from the previous section. It is taken from~\cite{coladangelo2017robust}, where more general statements are shown for any BLS that satisfies appropriate conditions. (A similar result specialized to the case of the Magic Square game is shown in~\cite{wu2016device}.)
+
+\begin{theorem}\label{thm:ms-robust}
+Suppose that a strategy $(\ket{\psi},A,B)$ succeeds with probability $1-\eps$ in the Magic Square game, for some $\eps\geq 0$. Then there are isometries $V_\reg{D}:\mH_\reg{D}\to \C^2 \otimes \C^2 \otimes \mH_{\reg{D}'}$ for $D\in\{A,B\}$ such that
+\[ \big\| V_\reg{A} \otimes V_{\reg{B}} \ket{\psi}_{\reg{AB}} - \ket{\phi^+}\otimes \ket{\phi^+} \otimes \ket{aux} \big\|^2 \,=\, O\big(\sqrt{\eps}\big)\;,\]
+for some state $\ket{aux}$ on $\mH_{\reg{A'}}\otimes \mH_{\reg{B'}}$, and
+\begin{align*} 
+\big\| \Id_\reg{A} \otimes \big( V_\reg{B} B_2 -  (\sigma_Z\otimes \Id \otimes \Id) V_\reg{B}\big)\ket{\psi}_{\reg{AB}}\big\|^2 &= O(\eps)\;,\\
+\big\| \Id_\reg{A} \otimes \big( V_\reg{B} B_4 -  (\sigma_X\otimes \Id \otimes \Id) V_\reg{B}\big)\ket{\psi}_{\reg{AB}}\big\|^2 &= O(\eps)\;,
+\end{align*}
+and similar relations hold for the remaining seven observables on Bob's side. 
+\end{theorem}
+
+Note that the theorem only characterizes the player's observables ``up to isometry'', as opposed to ``up to isomorphism'' as we were able to in the perfect case (Lemma~\ref{lem:ms-perfect-rigid}). As discussed in the previous lecture (Section~\ref{sec:operational-qubit}) this is unavoidable in general. 
+
+Later we will see a general method to derive statements such as Theorem~\ref{thm:ms-robust} based on the use of approximate group representation theory. For now, we let it serve as a good illustration of the kind of statements we aim to prove in this course. It is worth reflecting on the strength of what we have achieved: using only classical data and a single physical assumption (our model for spatial isolation based on the use of tensor products) we have arrived at a very simple test that can be used to fully characterize the quantum state of a $16$-dimensional system ($4$ qubits) as well as elementary operations performed on it. This conclusion is much stronger than the ``standard'' conclusion that motivates the study of Bell inequalities in the first place: that they require entanglement.\footnote{Note that the fact that the isometries $V_\reg{A}$ and $V_\reg{B}$ are ``local'', each acting only on one half of the total Hilbert space, is important because it means that they couldn't have artificially create the entanglement present in $\ket{\phi^+}\otimes \ket{\phi^+}$: that entanglement must ``exist'' even independently of the application of the isometry, which only serves to ``package'' it in the neat form of two EPR pairs. Of course, the state $\ket{aux}$ may or may not contain entanglement itself.}
+There is no equivalent to this in classical theory! 
