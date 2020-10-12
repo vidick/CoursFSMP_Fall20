@@ -211,7 +211,7 @@ Using these identities,
 \begin{align*}
 XZ\ket{{\psi}} &= \sigma_X \sigma_Z \ket{{\psi}}\\
 &= -\sigma_Z \sigma_X \ket{{\psi}}\\
-&= - ZX \ket{\tilde{\psi}} \;,
+&= - ZX \ket{{\psi}} \;,
 \end{align*}
 as required. 
 \end{proof}
@@ -272,7 +272,7 @@ where $\rho_{\reg{B}}$ is the reduced density matrix of $\rho_{\reg{AB}}$ on $\m
 \[H(\sigma) \,=\,  -\Tr(\sigma\ln\sigma) \,=\,  -\sum_i \lambda_i\log \lambda_i\;,\]
  where the $\lambda_i$ are the nonzero eigenvalues of $\sigma$. 
 
-. Note that this quantity can be negative! However, it can never be more negative than the ``quantum dimension'' of $\reg{B}$. To make this notion precise we introduce the notion of a ``classical-quantum'', or CQ state. A CQ state is simply a bipartite state such that the first system is classical. More precisely, a CQ state $\rho_{\reg{AB}} \in \Density(\mH_A \otimes \mH_B)$ has a decomposition
+Note that this quantity can be negative! However, it can never be more negative than the ``quantum dimension'' of $\reg{B}$. To make this notion precise we introduce the notion of a ``classical-quantum'', or CQ state. A CQ state is simply a bipartite state such that the first system is classical. More precisely, a CQ state $\rho_{\reg{AB}} \in \Density(\mH_A \otimes \mH_B)$ has a decomposition
 \[ \rho_{\reg{AB}}\,=\, \sum_{x} \,\proj{x}_\reg{A} \otimes (\rho_x)_{\reg{B}}\;,\]
 where here $x$ ranges over the standard basis of $\mH_\reg{A}$. The first system is ``classical'' in the sense that a measurement of it in the standard basis does not change $\rho$. Now, for an arbitrary state $\rho \in \mH_\reg{A} \otimes \mH_{\reg{B}}$ suppose that we can decompose the $B$ part into a ``classical'' part $\reg{C}$ and a ``quantum'' part $\reg{Q}$: 
 \[ \rho_{\reg{B}} = \sum_c p_c\,\proj{c}\otimes \rho_c \in \mH_C \otimes \mH_Q\;,\]
