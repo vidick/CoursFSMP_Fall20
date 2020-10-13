@@ -104,7 +104,9 @@ Assumption~\ref{ass:hc-bit} is called \emph{adaptive hardcore bit} for the follo
 
 \section{A computational test for a qubit}
 
-We conclude the lecture by giving a ``proof of concept'' that it is possible to test a qubit based on computational assumptions. The main assumption that we make is that there is a function family $\{f_{pk}\}$ that satisfies the hardcore bit assumption, Assumption~\ref{ass:hc-bit}. In fact we will need a little bit more. Let's summarize the requirements as follows:
+We conclude the lecture by giving a ``proof of concept'' that it is possible to test a qubit based on computational assumptions. Our presentation is a simplified version of the protocol and analysis from~\cite{brakerski2018cryptographic}. For a related approach, see~\cite{cojocaru2019qfactory}. 
+
+ The main assumption that we make is that there is a function family $\{f_{pk}\}$ that satisfies the hardcore bit assumption, Assumption~\ref{ass:hc-bit}. In fact we will need a little bit more. Let's summarize the requirements as follows:
 \begin{enumerate}[label=(\textbf{F.\arabic*})]
 \item\label{ass:f1} There is a claw-free function family $\mF = \{f_{pk}\}$ equipped with an efficient key generation procedure $\textsc{Gen}(1^\lambda)$ such that for each key $pk$ the function $f_{pk}$ can be evaluated efficiently.
 \item \label{ass:f2}The function family $\mF$ satisfies the adaptive hardcore bit assumption, Assumption~\ref{ass:hc-bit}.
