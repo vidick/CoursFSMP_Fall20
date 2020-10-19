@@ -22,6 +22,7 @@ Having set the stage with this rather loose description we make some important r
 
 
 \section{Interactive proofs}
+\label{sec:ips-informal}
 
 With this informal motivation for our notion of an ``interactive experiment'' in place we now give a more precise framework for modeling such experiments. For this we adapt the framework of \emph{interactive proof systems} from cryptography and complexity theory. In this framework it is generally assumed that a trusted entity called the \emph{verifier} interacts with an not-necessarily-trusted entity called the \emph{prover}. The verifier is trying to verify some claim about the world (e.g. in complexity, that some input formula $\varphi$ is satisfiable) or about the prover itself (e.g. in cryptography, that the prover has the right identifying information). Towards this the verifier may ``interrogate'' the prover in an interactive manner. At the end of the interaction the verifier makes a decision to accept or reject. Informally, the proof system will be called ``sound'' if whenever the verifier accepts, the claim is indeed true. 
 
@@ -211,7 +212,7 @@ Using these identities,
 \begin{align*}
 XZ\ket{{\psi}} &= \sigma_X \sigma_Z \ket{{\psi}}\\
 &= -\sigma_Z \sigma_X \ket{{\psi}}\\
-&= - ZX \ket{{\psi}} \;,
+&= - ZX \ket{\tilde{\psi}} \;,
 \end{align*}
 as required. 
 \end{proof}
@@ -229,7 +230,7 @@ Applying Claim~\ref{claim:qubit-test-1a} to $Z=P^0$ and $X=P^1$ and using~\eqref
 
 The main drawback of the test presented in the previous section is that it requires one qubit on the verifier side to test one qubit on the prover side. In general we are interested in tests where the verification effort is much smaller than the effort that is certified of the quantum device, or ``prover''. 
 
-The test we presented has a natural ``scaled up'' variant, in which the verifier sequentially prepares single-qubit states $\ket{v_i^{\theta_i}}$ for $i=1,\ldots,n$ and sends them to the prover. Once all qubits have been sent, the verifier announces $\theta_1,\ldots,\theta_n$ and expects $v'_1,\ldots,v'_n \in \{0,1\}$ such that $v'_i=v_i$ for all $i$. In this test the verifier can accomplish her share of the work using a single-qubit computer only, since she can prepare and send the $n$ qubits one at a time and use classical memory to store the entire strings $v,\theta\in\{0,1\}^n$. A similar analysis as the one presented in the previous section would then demonstrate that the prover ``has $n$ qubits'', where the notion of having $n$ qubits is the state-dependent version of the $n$-qubit definition we saw in the previous lecture, Definition~\ref{def:n-qubit-take1}. Moreover, an $n$-qubit variant of Lemma~\ref{lem:qubit-2-rigid} also holds, so that we'd effectively have shown that the prover does require a quantum memory of dimension $2^n$ in order to successfully accomplish its task. 
+The test we presented has a natural ``scaled up'' variant, in which the verifier sequentially prepares single-qubit states $\ket{v_i^{\theta_i}}$ for $i=1,\ldots,n$ and sends them to the prover. Once all qubits have been sent, the verifier announces $\theta_1,\ldots,\theta_n$ and expects $v'_1,\ldots,v'_n \in \{0,1\}$ such that $v'_i=v_i$ for all $i$. In this test the verifier can accomplish her share of the work using a single-qubit computer only, since she can prepare and send the $n$ qubits one at a time and use classical memory to store the entire strings $v,\theta\in\{0,1\}^n$. A similar analysis as the one presented in the previous section would then demonstrate that the prover ``has $n$ qubits'', where the notion of having $n$ qubits is the state-dependent version of the $n$-qubit definition we saw in the previous lecture, Definition~\ref{def:n-qubit-take1}. Moreover, an $n$-qbut variant of Lemma~\ref{lem:qubit-2-rigid} also holds, so that we'd effectively have shown that the prover does require a quantum memory of dimension $2^n$ in order to successfully accomplish its task. 
 
 Unfortunately, the method that we introduced so far does not extend well to success probabilities smaller than $1$. In general it is unrealistic to make the assumption that the prover succeeds perfectly in the protocol, as this cannot be verified. A more reasonable assumption is that the prover succeeds with probability $1-\eps$, for some constant $\eps>0$ that can be made smaller and smaller with higher and higher confidence by repeating the protocol, but can never be driven down to exactly zero. As far as I can tell applying the method from the previous section to this case only yields a good bound on the quantum dimension of the prover when $\eps =O(1/n)$, which then requires $\Omega(n)$ executions of the protocol to certify. (See~\cite[Theorem 2.1]{chao2018test} for a quantitative statement of the kind that would apply here.)
 
@@ -272,7 +273,7 @@ where $\rho_{\reg{B}}$ is the reduced density matrix of $\rho_{\reg{AB}}$ on $\m
 \[H(\sigma) \,=\,  -\Tr(\sigma\ln\sigma) \,=\,  -\sum_i \lambda_i\log \lambda_i\;,\]
  where the $\lambda_i$ are the nonzero eigenvalues of $\sigma$. 
 
-Note that this quantity can be negative! However, it can never be more negative than the ``quantum dimension'' of $\reg{B}$. To make this notion precise we introduce the notion of a ``classical-quantum'', or CQ state. A CQ state is simply a bipartite state such that the first system is classical. More precisely, a CQ state $\rho_{\reg{AB}} \in \Density(\mH_A \otimes \mH_B)$ has a decomposition
+. Note that this quantity can be negative! However, it can never be more negative than the ``quantum dimension'' of $\reg{B}$. To make this notion precise we introduce the notion of a ``classical-quantum'', or CQ state. A CQ state is simply a bipartite state such that the first system is classical. More precisely, a CQ state $\rho_{\reg{AB}} \in \Density(\mH_A \otimes \mH_B)$ has a decomposition
 \[ \rho_{\reg{AB}}\,=\, \sum_{x} \,\proj{x}_\reg{A} \otimes (\rho_x)_{\reg{B}}\;,\]
 where here $x$ ranges over the standard basis of $\mH_\reg{A}$. The first system is ``classical'' in the sense that a measurement of it in the standard basis does not change $\rho$. Now, for an arbitrary state $\rho \in \mH_\reg{A} \otimes \mH_{\reg{B}}$ suppose that we can decompose the $B$ part into a ``classical'' part $\reg{C}$ and a ``quantum'' part $\reg{Q}$: 
 \[ \rho_{\reg{B}} = \sum_c p_c\,\proj{c}\otimes \rho_c \in \mH_C \otimes \mH_Q\;,\]

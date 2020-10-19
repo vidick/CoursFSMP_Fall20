@@ -103,6 +103,7 @@ Assumption~\ref{ass:hc-bit} is called \emph{adaptive hardcore bit} for the follo
 \end{remark}
 
 \section{A computational test for a qubit}
+\label{sec:comp-test}
 
 We conclude the lecture by giving a ``proof of concept'' that it is possible to test a qubit based on computational assumptions. Our presentation is a simplified version of the protocol and analysis from~\cite{brakerski2018cryptographic}. For a related approach, see~\cite{cojocaru2019qfactory}. 
 
@@ -120,8 +121,8 @@ Let us fix a function family $\mF$ satisfying the assumptions~\ref{ass:f1} to~\r
 \item The verifier selects a uniformly random challenge $c\leftarrow_R \{0,1\}$ and sends $c$ to the prover. 
 \item 
 \begin{enumerate}
-\item In case $c=0$ the prover is expected to return an $x\in\{0,1\}^n$. The verifier accepts if and only if $f(x)=1$. 
-\item In case $c=1$ the prover is expected to return a $d\in \{0,1\}^n$. The verifier uses $td$ to determine the two preimages $(x_0,x_1)$ of $y$ by $f_{pk}$. She accepts if and only if $d\cdot(x_0+ x_1)=0$. 
+\item \emph{(pre-image test:)} In case $c=0$ the prover is expected to return an $x\in\{0,1\}^n$. The verifier accepts if and only if $f(x)=1$. 
+\item \emph{(equation test:)}In case $c=1$ the prover is expected to return a $d\in \{0,1\}^n$. The verifier uses $td$ to determine the two preimages $(x_0,x_1)$ of $y$ by $f_{pk}$. She accepts if and only if $d\cdot(x_0+ x_1)=0$. 
 \end{enumerate}
 \end{enumerate}
 
