@@ -55,12 +55,12 @@ In a cryptographic context we will generally allow $M$ to take a second input $1
 
 Similarly to circuits in the previous section, when we talk about computational \emph{difficulty} of a certain problem we always need to refer to \emph{families} of objects. This is because e.g. for any given function $f$ there is nothing ``hard'' about the task of recovering specific information about $f$: if $f$ is fixed everything about it is fixed as well; in particular in the case when $f$ has the structure required for Simon's problem there is a simple algorithm that identifies $s$, and this is the algorithm that writes $s$ down starting from any initial state. 
 
-For this reason we will always consider families of functions $\{f_{pk}: \{0,1\}^{n(\lambda)} \to \{0,1\}^{n(\lambda)}\}_{pk\in\{0,1\}^{k(\lambda)}}$ where the index $\lambda \in \mathbb{N}$ is called \emph{security parameter} and $k$ and $n$ are polynomially bounded functions of $\lambda$; the idea is that for each $\lambda$ there is a collection of functions, indexed by strings of length $k(\lambda)$ and with the same domain and range, such that the larger the $\lambda$ the more ``complex'' the functions are. For example, we could take $k(\lambda)=\lambda^2$, $n(\lambda)=\lambda$, and $f_{pk}$ to be multiplication by the matrix $A\in\{0,1\}^{\lambda\times \lambda}$ obtained by ``reshaping'' the $\lambda^2$-bit string $pk$ into a $\lambda\times\lambda$ square. 
+For this reason we will always consider families of functions $\{f_{pk}: \{0,1\}^{m(\lambda)} \to \{0,1\}^{m(\lambda)}\}_{pk\in\{0,1\}^{k(\lambda)}}$ where the index $\lambda \in \mathbb{N}$ is called \emph{security parameter} and $k$ and $m$ are polynomially bounded functions of $\lambda$; the idea is that for each $\lambda$ there is a collection of functions, indexed by strings of length $k(\lambda)$ and with the same domain and range, such that the larger the $\lambda$ the more ``complex'' the functions are. For example, we could take $k(\lambda)=\lambda^2$, $m(\lambda)=\lambda$, and $f_{pk}$ to be multiplication by the matrix $A\in\{0,1\}^{\lambda\times \lambda}$ obtained by ``reshaping'' the $\lambda^2$-bit string $pk$ into a $\lambda\times\lambda$ square. 
 
 Let's give our first definition of a cryptographic property that applies to a family of functions. 
 
 \begin{definition}[Claw-free function family]
-A family $\mF = \{f_{pk}: \{0,1\}^{n(\lambda)} \to \{0,1\}^{n(\lambda)}\}_{pk\in\{0,1\}^{k(\lambda)}}$ is \emph{claw-free} against classical (resp. quantum) adversaries if 
+A family $\mF = \{f_{pk}: \{0,1\}^{m(\lambda)} \to \{0,1\}^{m(\lambda)}\}_{pk\in\{0,1\}^{k(\lambda)}}$ is \emph{claw-free} against classical (resp. quantum) adversaries if 
 the following conditions hold:
 \begin{itemize}
 \item $f_{pk}$ can be efficiently evaluated: there is a PPT procedure that given $pk$ and $x$ as inputs returns $f_{pk}(x)$.
@@ -83,7 +83,7 @@ While this family of functions is claw-free with respect to PPT adversaries, it 
 
 \subsection{Hardcore bits}
 
-Following the initial steps of Simon's algorithm as described in Section~\ref{sec:simon-algorithm} when instantiated with any $2$-to-$1$ function enables a quantum device to generate strings $d\in\{0,1\}^n$ such that $d\cdot (x_0 + x_1) = 0$, where $(x_0,x_1)$ are preimages of some $y\in \F_2^n$ by $f$. Intuitively one might expect that this represents a computational advantage, because $d$ provides an equation in $x_0+x_1$, which is some information about both preimages together. For example in the case where $x_0+ x_1 = s$, where $s$ is some fixed secret independent of $y$, we saw that provided the equation $d$ can be assumed to be uniformly distributed among all valid equations in $s$ then running the procedure $O(n)$ times gives sufficiently many equations to recover $s$. 
+Following the initial steps of Simon's algorithm as described in Section~\ref{sec:simon-algorithm} when instantiated with any $2$-to-$1$ function enables a quantum device to generate strings $d\in\{0,1\}^m$ such that $d\cdot (x_0 + x_1) = 0$, where $(x_0,x_1)$ are preimages of some $y\in \F_2^m$ by $f$. Intuitively one might expect that this represents a computational advantage, because $d$ provides an equation in $x_0+x_1$, which is some information about both preimages together. For example in the case where $x_0+ x_1 = s$, where $s$ is some fixed secret independent of $y$, we saw that provided the equation $d$ can be assumed to be uniformly distributed among all valid equations in $s$ then running the procedure $O(m)$ times gives sufficiently many equations to recover $s$. 
 
 Unfortunately, as discussed in Section~\ref{sec:simon-instantiate} for the only function that we could think of that has this property it is in fact easy to recover $s$, even for a classical computer. This suggests that in general the assumption that $f$ satisfies the structure required for Simon's algorithm might be too strong to obtain an explicit candidate. Moreover, recall that at the start of the lecture we pointed out that our goal is not directly to find a task for which there is a quantum computational advantage, but instead we are trying to identify \emph{two} tasks that the quantum device can perform \emph{separately} but not \emph{simultaneously}---if someone, such as a classical device, was able to execute both tasks simultaneously then it would break the computational assumption. What could those two tasks be here? 
 
@@ -92,14 +92,14 @@ Starting from the state~\eqref{eq:simon-1} it is natural to measure in the Hadam
 \begin{assumption}[Adaptive hardcore bit]\label{ass:hc-bit}
 There is a claw-free family of functions $\mF = \{f_{pk}\}$ such that  for any QPT adversary $\mA$ there is a negligible function $\mu$ such that 
 \begin{equation}\label{eq:hc-bit-0}
-\Big|\frac{1}{2} -  \Pr_{pk\leftarrow_R \{0,1\}^{k(\lambda)}}\Big( (x,d)\leftarrow \mA(1^\lambda,pk),\, \{x_0,x_1\}\leftarrow f_{pk}^{-1}(f_{pk}(x)):\; d\neq 0^n \wedge d\cdot ( x_0+x_1) = 0\Big)\Big| \,\leq\, \mu(\lambda)\;.
+\Big|\frac{1}{2} -  \Pr_{pk\leftarrow_R \{0,1\}^{k(\lambda)}}\Big( (x,d)\leftarrow \mA(1^\lambda,pk),\, \{x_0,x_1\}\leftarrow f_{pk}^{-1}(f_{pk}(x)):\; d\neq 0^m \wedge d\cdot ( x_0+x_1) = 0\Big)\Big| \,\leq\, \mu(\lambda)\;.
 \end{equation}
 \end{assumption}
 
-In words, the assumption is that no \emph{quantum} polynomial-time algorithm can \emph{simultaneously} return an element $x$ in the domain of $f$ and an equation $d$ such that, letting $\{x_0,x_1\}$ be the two preimages of $f_{pk}(x)$ under $f_{pk}$ it holds that $d\neq 0^n$ and $d\cdot (x_0+x_1)=0$. Note that although we required $\{f_{pk}\}$ to be claw-free, this requirement is stronger, since any algorithm that can find a claw $(x_0,x_1)$ can be used to break~\eqref{eq:hc-bit-0}.
+In words, the assumption is that no \emph{quantum} polynomial-time algorithm can \emph{simultaneously} return an element $x$ in the domain of $f$ and an equation $d$ such that, letting $\{x_0,x_1\}$ be the two preimages of $f_{pk}(x)$ under $f_{pk}$ it holds that $d\neq 0^m$ and $d\cdot (x_0+x_1)=0$. Note that although we required $\{f_{pk}\}$ to be claw-free, this requirement is stronger, since any algorithm that can find a claw $(x_0,x_1)$ can be used to break~\eqref{eq:hc-bit-0}.
 
 \begin{remark}
-Assumption~\ref{ass:hc-bit} is called \emph{adaptive hardcore bit} for the following reason. Given a function $f$ a hardcore bit for $f$ is a $1$-bit function $h$ such that given $f(x)$ (but not $x$) it is hard to predict $h(x)$. Here, the hardcore bit that underlies the assumption is the function $h(x)=d\cdot (x_0+x_1)$ for any $d\neq 0^n$: the Goldreich-Levin theorem implies that if $f$ is indeed claw-free then it is hard to predict $b(x)$ for a \emph{random} $d$. The ``adaptive'' qualifier refers to the fact that in~\eqref{eq:hc-bit-0} we allow the adversary $\mA$ itself to select the equation $d$ without requiring that this equation is uniformly distributed  (we will see why this is needed in the next section); in particular $\mA$ may return always the same $d$, and this invalidates the classic Golreich-Levin argument. This makes the property harder to satisfy, because more power is given to the adversary. (Note in particular that we had to explicitly require $d\neq 0^n$, as otherwise there is an easy adversary that always succeeds.)
+Assumption~\ref{ass:hc-bit} is called \emph{adaptive hardcore bit} for the following reason. Given a function $f$ a hardcore bit for $f$ is a $1$-bit function $h$ such that given $f(x)$ (but not $x$) it is hard to predict $h(x)$. Here, the hardcore bit that underlies the assumption is the function $h(x)=d\cdot (x_0+x_1)$ for any $d\neq 0^m$: the Goldreich-Levin theorem implies that if $f$ is indeed claw-free then it is hard to predict $b(x)$ for a \emph{random} $d$. The ``adaptive'' qualifier refers to the fact that in~\eqref{eq:hc-bit-0} we allow the adversary $\mA$ itself to select the equation $d$ without requiring that this equation is uniformly distributed  (we will see why this is needed in the next section); in particular $\mA$ may return always the same $d$, and this invalidates the classic Golreich-Levin argument. This makes the property harder to satisfy, because more power is given to the adversary. (Note in particular that we had to explicitly require $d\neq 0^m$, as otherwise there is an easy adversary that always succeeds.)
 \end{remark}
 
 \section{A computational test for a qubit}
@@ -112,23 +112,31 @@ We conclude the lecture by giving a ``proof of concept'' that it is possible to 
 \item\label{ass:f1} There is a claw-free function family $\mF = \{f_{pk}\}$ equipped with an efficient key generation procedure $\textsc{Gen}(1^\lambda)$ such that for each key $pk$ the function $f_{pk}$ can be evaluated efficiently.
 \item \label{ass:f2}The function family $\mF$ satisfies the adaptive hardcore bit assumption, Assumption~\ref{ass:hc-bit}.
 \item\label{ass:f3} $\mF$ is equipped with a trapdoor: in addition to $pk$, $\textsc{Gen}(1^\lambda)$ returns a trapdoor $td$ such that given $pk$, $td$ and any $y$ in the range of $f_{pk}$ it is possible to efficiently recover the two preimages $x_0$ and $x_1$ of $y$. 
-\item\label{ass:f4} For any $pk$ and any $y$ in the range of $f_{pk}$ the two preimages of $y$ are labelled '$x_0$' and '$x_1$' using some canonical efficient procedure. That is, given a key $pk$ and an $x$ in the domain of $f_{pk}$ it is possible to efficiently determine if $x$ is the '$x_0$' or the '$x_1$' preimage of $y=f(x)$. Let $b:\{0,1\}^n \to \{0,1\}$ be this labeling procedure; $b$ may depend on $pk$. 
+\item\label{ass:f4} For any $pk$ and any $y$ in the range of $f_{pk}$ the two preimages of $y$ are labelled '$x_0$' and '$x_1$' using some canonical efficient procedure. That is, given a key $pk$ and an $x$ in the domain of $f_{pk}$ it is possible to efficiently determine if $x$ is the '$x_0$' or the '$x_1$' preimage of $y=f(x)$. Let $b:\{0,1\}^m \to \{0,1\}$ be this labeling procedure; $b$ may depend on $pk$. 
 \end{enumerate}
-Let us fix a function family $\mF$ satisfying the assumptions~\ref{ass:f1} to~\ref{ass:f4}. We give a protocol based on $\mF$. The protocol describes the interaction between a classical polynomial-time verifier and a (possibly quantum) polynomial-time prover. Here, the input to both parties is the security parameter $\lambda$; when we refer to PPT or QPT we mean with respect to $\lambda$.
-\begin{enumerate}
+Let us fix a function family $\mF$ satisfying the assumptions~\ref{ass:f1} to~\ref{ass:f4}. We give a protocol based on $\mF$. The protocol describes the interaction between a classical polynomial-time verifier and a (possibly quantum) polynomial-time prover. Here, the input to both parties is the security parameter $\lambda$; when we refer to PPT or QPT we mean with respect to $\lambda$. The protocol is described in Figure~\ref{fig:protocol-comp-test}. For future reference we refer to it as ``protocol $\pq$.''
+
+\begin{figure}[htbp]
+\rule[1ex]{16.5cm}{0.5pt}\\
+Let $\mF$ be a function family and $\lambda\in\mathbb{N}$ a security parameter. \begin{enumerate}
 \item The verifier generates $(pk,td)\leftarrow \textsc{Gen}(1^\lambda)$. It sends $pk$ to the prover. 
-\item The prover returns $y \in \{0,1\}^n$, where $n=n(\lambda)$. 
+\item The prover returns $y \in \{0,1\}^m$, where $m=m(\lambda)$. 
 \item The verifier selects a uniformly random challenge $c\leftarrow_R \{0,1\}$ and sends $c$ to the prover. 
 \item 
 \begin{enumerate}
-\item \emph{(pre-image test:)} In case $c=0$ the prover is expected to return an $x\in\{0,1\}^n$. The verifier accepts if and only if $f(x)=1$. 
-\item \emph{(equation test:)}In case $c=1$ the prover is expected to return a $d\in \{0,1\}^n$. The verifier uses $td$ to determine the two preimages $(x_0,x_1)$ of $y$ by $f_{pk}$. She accepts if and only if $d\cdot(x_0+ x_1)=0$. 
+\item \emph{(pre-image test:)} In case $c=0$ the prover is expected to return an $x\in\{0,1\}^m$. The verifier accepts if and only if $f(x)=1$. 
+\item \emph{(equation test:)}In case $c=1$ the prover is expected to return a $d\in \{0,1\}^m$. The verifier uses $td$ to determine the two preimages $(x_0,x_1)$ of $y$ by $f_{pk}$. She accepts if and only if $d\cdot(x_0+ x_1)=0$. 
 \end{enumerate}
 \end{enumerate}
+\rule[1ex]{16.5cm}{0.5pt}
+\caption{Protocol $\pq$, the copmutational test for a qubit. The protocol is parametrized by a function family~$\mF$.}
+\label{fig:protocol-comp-test}
+\end{figure}
+
 
 
 \begin{theorem}\label{thm:comp-qubit}
-Let $\mF$ satisfy the assumptions~\ref{ass:f1} to~\ref{ass:f4}. Then the following hold:
+Let $\mF$ satisfy the assumptions~\ref{ass:f1} to~\ref{ass:f4}. Then the following hold for protocol~$\pq$.
 \begin{itemize}
 \item (Completeness:) There is a QPT prover $P$ which succeeds with probability $1$ in the protocol.
 \item (Soundness:) Suppose that a QPT prover $P$ succeeds with probability $1$ in the protocol. Then $P$ has a (near-perfect) qubit. 
@@ -156,8 +164,8 @@ To show the soundness part of the theorem we start with the usual (and, here, cr
 At the second stage of the protocol the prover is given a challenge $c\in\{0,1\}$ and tasked with responding with an $n$-bit string, $x$ or $d$ depending on the challenge. In general, $x$ is obtained by performing a POVM $\{\Pi_x\}$ on the prover's entire space, and similarly $d$ is the outcome of a POVM $\{M_d\}$.\footnote{We do not need to explicitly mark any dependence of $\Pi$ or $M$ on $pk$ and $y$, because without loss of generality the prover has kept a classical copy of these strings in its quantum state $\ket{\psi}$, which can be used as a classical control by both $\Pi$ and $M$.} We make the following observations that allow us to simplify the presentation of these POVM:
 \begin{itemize}
 \item Without loss of generality both $\Pi$ and $M$ are projective measurements. This is because we can enlarge $\reg{P}$ and add sufficiently many ancilla qubits initialized to $\ket{0}$ so as to apply Naimark's theorem. 
-\item Without loss of generality, assume that the prover has access to an $n$-qubit register $\reg{X}$ initialized to $\ket{0^n}$. 
-\item Without loss of generality, assume that $\Pi$ is obtained by first applying a unitary transformation $U$ on $\mH_\reg{X} \otimes \mH_{\reg{P}}$ followed by a standard basis measurement of $\mH_\reg{X}  \simeq (\C^2)^{\otimes n}$. Any projective measurement can be put in this form by letting $U$ be any unitary extension of the map 
+\item Without loss of generality, assume that the prover has access to an $m$-qubit register $\reg{X}$ initialized to $\ket{0^m}$. 
+\item Without loss of generality, assume that $\Pi$ is obtained by first applying a unitary transformation $U$ on $\mH_\reg{X} \otimes \mH_{\reg{P}}$ followed by a standard basis measurement of $\mH_\reg{X}  \simeq (\C^2)^{\otimes m}$. Any projective measurement can be put in this form by letting $U$ be any unitary extension of the map 
 \[\ket{0}\ket{\psi}\in \mH_\reg{X}\otimes \mH_\reg{P}\; \mapsto\; \sum_x \,\ket{x} \sqrt{\Pi_x} \ket{\psi}\;,\]
  as this map is easily verified to be an isometry on $\ket{0}_\reg{X}\otimes \mH_\reg{P}$. 
 \item Similarly, without loss of generality assume that $M$ is obtained by first applying a unitary transformation $V$ on $\mH_\reg{X} \otimes \mH_{\reg{P}}$ followed by a Hadamard basis measurement of $\mH_\reg{X}$.
@@ -165,12 +173,12 @@ At the second stage of the protocol the prover is given a challenge $c\in\{0,1\}
 \end{itemize}
 We now introduce observables $Z$ and $X$ on $\mH_\reg{X}$ associated with the prover. For $Z$, we define it to be 
 \begin{equation}\label{eq:comp-qubit-proof-1a}
-Z \,=\, \sum_{x\in\{0,1\}^n} (-1)^{b(x)} \proj{x}\;,
+Z \,=\, \sum_{x\in\{0,1\}^m} (-1)^{b(x)} \proj{x}\;,
 \end{equation}
 where $b:\{0,1\}^n\to\{0,1\}$ is the function from assumption~\ref{ass:f4}. 
 $Z$ is efficiently computable since $b$ is. For $X$, we define it to be 
 \begin{equation}\label{eq:comp-qubit-proof-1b}
- X\,=\, \sum_{d\in\{0,1\}^n} (-1)^{d\cdot(x_0+x_1)}\,  V^\dagger \big(H^{\otimes n}_\reg{X}\otimes \Id_\reg{P}\big)^\dagger \big(\proj{d}_\reg{X} \otimes \Id_\reg{P} \big)\big(H^{\otimes n}_\reg{X}\otimes \Id_\reg{P}\big) V\;,
+ X\,=\, \sum_{d\in\{0,1\}^m} (-1)^{d\cdot(x_0+x_1)}\,  V^\dagger \big(H^{\otimes m}_\reg{X}\otimes \Id_\reg{P}\big)^\dagger \big(\proj{d}_\reg{X} \otimes \Id_\reg{P} \big)\big(H^{\otimes m}_\reg{X}\otimes \Id_\reg{P}\big) V\;,
 \end{equation}
 where $x_0$ and $x_1$ are the two preimages under $f_{pk}$ of the string $y$ returned by $P$ at step $2$. (There is an observable $X$ for each possible string $y$, but we suppress this dependence from the notation for clarity.) Note that $X$ is \emph{not} efficient, because we are not assuming that determining $x_0+x_1$ from $y$ is efficient in general. However, $X$ can be computed in a straightforward manner by applying the prover's efficient measurement $\{M_d\}$ followed by (non-efficient) classical post-processing. (We insist on this point to clarify that our definition is not injecting ``quantumness'' artificially.) Informally, $X$ can be thought of as the observable that determines if the equation $d$ returned by the prover on challenge $c=1$ is correct or not. In particular, later we will use that for a prover that always succeeds to a challenge $c=1$ we have $X\ket{\psi} = \ket{\psi}$, i.e.\ $\ket{\psi}$ is a $+1$ eigenstate of $X$. 
 
@@ -188,7 +196,7 @@ We do the proof for the case $b=0$, the other case being similar. Suppose for co
 \begin{equation}\label{eq:comp-qubit-proof-2}
 \big| \bra{\psi} Z_0 X Z_0 \ket{\psi} \big| \,\geq\, \frac{1}{q(\lambda)}
 \end{equation} 
-for infinitely many values of $\lambda$. We use this assumption to construct an adversary in~\eqref{eq:hc-bit-0}. The adversary proceeds as follows. Given as input $1^\lambda$ and $pk$ the adversary first executes the first phase of the prover, obtaining an outcome $y$ and a state $\ket{\psi}$. Then, the adversary measures the $n$ qubits in register $\reg{X}$ in the computational basis to obtain a value $x\in \{0,1\}^n$. If $b(x)=0$ then the adversary applies the unitary $V$ and measures register $\reg{X}$ (again) in the Hadamard basis to obtain $d\in \{0,1\}^n$. The adversary returns the pair $(x,d)$. If $b(x)=1$ then the adversary chooses $d\in\{0,1\}^n$ uniformly at random and returns $d$. Since the prover $P$ and $b$ are both efficient, $\mA$ is efficient. 
+for infinitely many values of $\lambda$. We use this assumption to construct an adversary in~\eqref{eq:hc-bit-0}. The adversary proceeds as follows. Given as input $1^\lambda$ and $pk$ the adversary first executes the first phase of the prover, obtaining an outcome $y$ and a state $\ket{\psi}$. Then, the adversary measures the $m$ qubits in register $\reg{X}$ in the computational basis to obtain a value $x\in \{0,1\}^m$. If $b(x)=0$ then the adversary applies the unitary $V$ and measures register $\reg{X}$ (again) in the Hadamard basis to obtain $d\in \{0,1\}^n$. The adversary returns the pair $(x,d)$. If $b(x)=1$ then the adversary chooses $d\in\{0,1\}^m$ uniformly at random and returns $d$. Since the prover $P$ and $b$ are both efficient, $\mA$ is efficient. 
 
 Note that this adversary does something ``unusual'' in the sense that it sequentially applies two operators that the prover would  never have applied simultaneously in the protocol. It is to make sense of this sequential application that we made the structural simplifications at the start of the proof. Let's analyze the success probability of $\mA$ by using~\eqref{eq:comp-qubit-proof-2}. There are two cases. Suppose first that the adversary obtains an $x$ such that $b(x)=0$. Then since $P$ is assumed to succeed with probability $1$ in case $c=0$, we know that necessarily $x=x_0$, and moreover prior to the measurement the support of $\ket{\psi}$ on $\reg{X}$ contained only the two values $\ket{x_0}$ and $\ket{x_1}$ (as otherwise there would be a chance that the prover returns an invalid preimage to the challenge $c=0$). Thus by definition of $Z$ in~\eqref{eq:comp-qubit-proof-1a} the post-measurement state is $Z_0\ket{\psi}$ (suitably re-normalized). The probability that $\mA$ obtains $b(x)=0$ and then a correct equation is then, by definition of $X$ in~\eqref{eq:comp-qubit-proof-1a} and $X_0 = \frac{1}{2}(\Id + X)$, precisely 
 \[ \bra{\psi} Z_0 X_0 Z_0 \ket{\psi} \,=\, \frac{1}{2} \big( \bra{\psi}Z_0\ket{\psi} + \bra{\psi} Z_0 X Z_0 \ket{\psi} \big) \;.\]
