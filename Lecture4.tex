@@ -109,7 +109,7 @@ We conclude the lecture by giving a ``proof of concept'' that it is possible to 
 
  The main assumption that we make is that there is a function family $\{f_{pk}\}$ that satisfies the hardcore bit assumption, Assumption~\ref{ass:hc-bit}. In fact we will need a little bit more. Let's summarize the requirements as follows:
 \begin{enumerate}[label=(\textbf{F.\arabic*})]
-\item\label{ass:f1} There is a claw-free function family $\mF = \{f_{pk}\}$ equipped with an efficient key generation procedure $\textsc{Gen}(1^\lambda)$ such that for each key $pk$ the function $f_{pk}$ can be evaluated efficiently.
+\item\label{ass:f1} There is a $2$-to-$1$ claw-free function family $\mF = \{f_{pk}\}$ equipped with an efficient key generation procedure $\textsc{Gen}(1^\lambda)$ such that for each key $pk$ the function $f_{pk}$ can be evaluated efficiently.
 \item \label{ass:f2}The function family $\mF$ satisfies the adaptive hardcore bit assumption, Assumption~\ref{ass:hc-bit}.
 \item\label{ass:f3} $\mF$ is equipped with a trapdoor: in addition to $pk$, $\textsc{Gen}(1^\lambda)$ returns a trapdoor $td$ such that given $pk$, $td$ and any $y$ in the range of $f_{pk}$ it is possible to efficiently recover the two preimages $x_0$ and $x_1$ of $y$. 
 \item\label{ass:f4} For any $pk$ and any $y$ in the range of $f_{pk}$ the two preimages of $y$ are labelled '$x_0$' and '$x_1$' using some canonical efficient procedure. That is, given a key $pk$ and an $x$ in the domain of $f_{pk}$ it is possible to efficiently determine if $x$ is the '$x_0$' or the '$x_1$' preimage of $y=f(x)$. Let $b:\{0,1\}^m \to \{0,1\}$ be this labeling procedure; $b$ may depend on $pk$. 
@@ -129,7 +129,7 @@ Let $\mF$ be a function family and $\lambda\in\mathbb{N}$ a security parameter. 
 \end{enumerate}
 \end{enumerate}
 \rule[1ex]{16.5cm}{0.5pt}
-\caption{Protocol $\pq$, the copmutational test for a qubit. The protocol is parametrized by a function family~$\mF$.}
+\caption{Protocol $\pq$, the computational test for a qubit. The protocol is parametrized by a function family~$\mF$.}
 \label{fig:protocol-comp-test}
 \end{figure}
 
@@ -165,11 +165,11 @@ At the second stage of the protocol the prover is given a challenge $c\in\{0,1\}
 \begin{itemize}
 \item Without loss of generality both $\Pi$ and $M$ are projective measurements. This is because we can enlarge $\reg{P}$ and add sufficiently many ancilla qubits initialized to $\ket{0}$ so as to apply Naimark's theorem. 
 \item Without loss of generality, assume that the prover has access to an $m$-qubit register $\reg{X}$ initialized to $\ket{0^m}$. 
-\item Without loss of generality, assume that $\Pi$ is obtained by first applying a unitary transformation $U$ on $\mH_\reg{X} \otimes \mH_{\reg{P}}$ followed by a standard basis measurement of $\mH_\reg{X}  \simeq (\C^2)^{\otimes m}$. Any projective measurement can be put in this form by letting $U$ be any unitary extension of the map 
+\item Without loss of generality, assume that $\Pi$ is obtained by first applying a unitary transformation $U_0$ on $\mH_\reg{X} \otimes \mH_{\reg{P}}$ followed by a standard basis measurement of $\mH_\reg{X}  \simeq (\C^2)^{\otimes m}$. Any projective measurement can be put in this form by letting $U_0$ be any unitary extension of the map 
 \[\ket{0}\ket{\psi}\in \mH_\reg{X}\otimes \mH_\reg{P}\; \mapsto\; \sum_x \,\ket{x} \sqrt{\Pi_x} \ket{\psi}\;,\]
  as this map is easily verified to be an isometry on $\ket{0}_\reg{X}\otimes \mH_\reg{P}$. 
-\item Similarly, without loss of generality assume that $M$ is obtained by first applying a unitary transformation $V$ on $\mH_\reg{X} \otimes \mH_{\reg{P}}$ followed by a Hadamard basis measurement of $\mH_\reg{X}$.
-\item Without loss of generality assume that $U = \Id$. This is because we can always redefine the prover's state at the end of step 2 to be $\ket{\psi'} = U\ket{\psi}$, in which case $U'=\Id$ and $V'=VU^\dagger$. 
+\item Similarly, without loss of generality assume that $M$ is obtained by first applying a unitary transformation $U_1$ on $\mH_\reg{X} \otimes \mH_{\reg{P}}$ followed by a Hadamard basis measurement of $\mH_\reg{X}$.
+\item Without loss of generality assume that $U_0 = \Id$. This is because we can always redefine the prover's state at the end of step 2 to be $\ket{\psi'} = U_0\ket{\psi}$, in which case $U'_0=\Id$ and $U_1'=U_1U_0^\dagger$. Since $U_0=\Id$, we simply use $U$ to denote $U_1$.
 \end{itemize}
 We now introduce observables $Z$ and $X$ on $\mH_\reg{X}$ associated with the prover. For $Z$, we define it to be 
 \begin{equation}\label{eq:comp-qubit-proof-1a}
@@ -178,7 +178,7 @@ Z \,=\, \sum_{x\in\{0,1\}^m} (-1)^{b(x)} \proj{x}\;,
 where $b:\{0,1\}^n\to\{0,1\}$ is the function from assumption~\ref{ass:f4}. 
 $Z$ is efficiently computable since $b$ is. For $X$, we define it to be 
 \begin{equation}\label{eq:comp-qubit-proof-1b}
- X\,=\, \sum_{d\in\{0,1\}^m} (-1)^{d\cdot(x_0+x_1)}\,  V^\dagger \big(H^{\otimes m}_\reg{X}\otimes \Id_\reg{P}\big)^\dagger \big(\proj{d}_\reg{X} \otimes \Id_\reg{P} \big)\big(H^{\otimes m}_\reg{X}\otimes \Id_\reg{P}\big) V\;,
+ X\,=\, \sum_{d\in\{0,1\}^m} (-1)^{d\cdot(x_0+x_1)}\,  U^\dagger \big(H^{\otimes m}_\reg{X}\otimes \Id_\reg{P}\big)^\dagger \big(\proj{d}_\reg{X} \otimes \Id_\reg{P} \big)\big(H^{\otimes m}_\reg{X}\otimes \Id_\reg{P}\big) U\;,
 \end{equation}
 where $x_0$ and $x_1$ are the two preimages under $f_{pk}$ of the string $y$ returned by $P$ at step $2$. (There is an observable $X$ for each possible string $y$, but we suppress this dependence from the notation for clarity.) Note that $X$ is \emph{not} efficient, because we are not assuming that determining $x_0+x_1$ from $y$ is efficient in general. However, $X$ can be computed in a straightforward manner by applying the prover's efficient measurement $\{M_d\}$ followed by (non-efficient) classical post-processing. (We insist on this point to clarify that our definition is not injecting ``quantumness'' artificially.) Informally, $X$ can be thought of as the observable that determines if the equation $d$ returned by the prover on challenge $c=1$ is correct or not. In particular, later we will use that for a prover that always succeeds to a challenge $c=1$ we have $X\ket{\psi} = \ket{\psi}$, i.e.\ $\ket{\psi}$ is a $+1$ eigenstate of $X$. 
 
