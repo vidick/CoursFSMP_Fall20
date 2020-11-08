@@ -1,8 +1,8 @@
 \chapter{Verifying a single qubit-Hamiltonian}
 
-In the previous lecture we introduced the circuit-to-Hamiltonian constructions, that given a quantum circuit $\mC$ and an input $x$ to it returns a Hamiltonian $H_\mC$ of the form~\eqref{eq:lh-comp} such that the completeness and soundness properties stated in Theorem~\ref{thm:kitaev} hold. This construction allowed us to reduce the problem of delegating a quantum computation to the problem of deciding if a certain publicly known, explicitly specified exponential-size Hermitian matrix $H_\mC$ has an eigenvalue below a certain threshold $a$, or all its eigenvalues are above $b+\delta$ for a $\delta$ that is at least inverse polynomial in the number of qubits $n$ on which $H_\mC$ acts.\footnote{In the previous lecture this number of qubits was called $n'$, with $n$ the number of qubits of the circuit $\mC$. For the next two lectures, $\mC$ disappears and so we re-use $n$ to measure the size of $H_\mC$.} We then introduced the Fitzsimons-Morimae protocol (Figure~\ref{fig:fhm-protocol}) that is a protocol with one-way communication for verifying this fact. 
+In the previous lecture we introduced the circuit-to-Hamiltonian construction, that given a quantum circuit $\mC$ and an input $x$ to it returns a Hamiltonian $H_\mC$ of the form~\eqref{eq:lh-comp} such that the completeness and soundness properties stated in Theorem~\ref{thm:kitaev} hold. This construction allowed us to reduce the problem of delegating a quantum computation to the problem of deciding if a certain publicly known, explicitly specified exponential-size Hermitian matrix $H_\mC$ has an eigenvalue below a certain threshold $a$, or all its eigenvalues are above $b+\delta$ for a $\delta$ that is at least inverse polynomial in the number of qubits $n$ on which $H_\mC$ acts.\footnote{In the previous lecture this number of qubits was called $n'$, with $n$ the number of qubits of the circuit $\mC$. For the next two lectures, $\mC$ disappears and so we re-use $n$ to measure the size of $H_\mC$.} We then introduced the Fitzsimons-Morimae protocol (Figure~\ref{fig:fhm-protocol}) that is a protocol with one-way communication for verifying this fact. 
 
-Our goal in this lecture is to combine the Fitzsimons-Morimae protocol with the computational test for a qubit from lecture 4, Section~\ref{sec:comp-test} to obtain a classical protocol with similar guarantees to the Fitzsimons-Morimae protocol. For this we will develop a test that allows one to verify that a prover ``has'' a quantum state $\ket{\psi}$ with certain properties (e.g.\ it satisfies $\bra{\psi}H\ket{\psi} \leq a + \delta/2$, i.e.\ certifies that the outcome of the computation is `$1$'. Note that even though in principle it is sufficient for the verifier to be convinced  that such a $\ket{\psi}$ exists to make the right decision, we will see from the proofs that we can go a little further and give a precise meaning to the notion that the prover `has' $\ket{\psi}$. This, however, will not be as strong as the claim that the prover `has $n$ qubits in state $\ket{\psi}$' in the sense that we gave to the phrase `has $n$ qubits', i.e.\ we will not quite exhibit $2n$ Pauli operators $X_i,Z_i$ that satisfy all the required relations. 
+Our goal in the next two lectures is to combine the Fitzsimons-Morimae protocol with the computational test for a qubit from lecture 4, Section~\ref{sec:comp-test} to obtain a classical protocol with similar guarantees to the Fitzsimons-Morimae protocol. For this we will develop a test that allows one to verify that a prover ``has'' a quantum state $\ket{\psi}$ with certain properties (e.g.\ it satisfies $\bra{\psi}H\ket{\psi} \leq a + \delta/2$, i.e.\ certifies that the outcome of the computation is `$1$'. Note that even though in principle it is sufficient for the verifier to be convinced  that such a $\ket{\psi}$ exists to make the right decision, we will see from the proofs that we can go a little further and give a precise meaning to the notion that the prover `has' $\ket{\psi}$. This, however, will not be as strong as the claim that the prover `has $n$ qubits in state $\ket{\psi}$' in the sense that we gave to the phrase `has $n$ qubits', i.e.\ we will not quite exhibit $2n$ Pauli operators $X_i,Z_i$ that satisfy all the required relations. 
 
 
 \begin{remark}
@@ -77,6 +77,17 @@ Let $\ket{\psi} \in \mH$ and $X,Z$ observables on $\mH$ be arbitrary. Let $V$ be
 where the $\sigma_Z$ and $\sigma_X$ operators act on the first tensor factor $\C^2$ in the range of $V$ and the identities act on $\mH'$. 
 \end{claim}
 
+
+Recalling the diagram~\ref{diag:one-qubit} introduced to illustrate Lemma~\ref{lem:qubit-2-rigid}, Claim~\ref{claim:iso-xz} can similarly be illustrated as follows, where $\Es{b}$ denotes the average over $b$:
+\begin{equation}\label{diag:one-qubit-b}
+\begin{tikzcd}
+\mH  \arrow{r}{V}  \arrow[swap]{dd}{\substack{Z \\[3mm] \Es{b\in\{0,1\}} (-1)^b\, Z^bXZ^b }} &  \C^2 \otimes \mH' \arrow{dd}{\substack{\sigma_Z\otimes \Id\\[3mm] \sigma_X\otimes \Id}} \\
+&\\ 
+\mH  \arrow{r}{V} & \C^2 \otimes \mH'
+\end{tikzcd}
+\end{equation}
+We emphasize that this diagram is purely illustrative and should be understood exactly in the sense of~\eqref{eq:isometry-z} and~\eqref{eq:isometry-x}; i.e.\ it does not imply a relation on the operators but only on the expectation values on the state $\ket{\psi}$. Informally, when considering expectation values only the isometry has the effect of applying a $Z$-twirl to the Hadamard basis observable $X$. 
+
 \begin{proof}
 Let $W\in\{X,Z\}$. Expanding from the definition of $V$,
 \begin{align*}
@@ -118,7 +129,7 @@ To show the second item we assume for contradiction that the two distributions a
 \end{equation}
 where recall that the expression on the left should be understood on average over the generation of $pk$ by the verifier and the message $y$ sent by the prover in the first round of interaction. We derive a contradiction with~\ref{ass:f2} by constructing an adversary in~\eqref{eq:hc-bit-0}.  Given $\lambda$ and $pk$ as input, $\mA$ prepares the state $\ket{\psi}$. $\mA$ then measures register $\reg{X}$ in the standard basis to obtain an outcome $x$. Using the assumption that the prover succeeds with probability $1$ in the pre-image test, $f_{pk}(x)=y$ and the (unnormalized) post-measurement state is exactly $Z_{b(x)}\ket{\psi}$, where as usual $Z_b = (\Id + (-1)^b Z)/2$.  Finally, the adversary applies the prover's unitary $U$ and measures in the Hadamard basis to obtain a string $d$. It returns the pair $(x,d)$. The expected value of $(-1)^{d\cdot (x_0+x_1)}$ under this procedure is 
 \[ \bra{\psi} Z_0 X Z_0 \ket{\psi} + \bra{\psi} Z_1 X Z_1 \ket{\psi} \,=\,\frac{1}{2}\big(\bra{\psi} X \ket{\psi} +  \bra{\psi} ZXZ \ket{\psi}\big)\;,\]
-which can be seen by expanding $Z_b=(\Id+(-1)^b Z)/2$ for $b\in \{0,1\}$ and canceling cross-terms. Using~\eqref{eq:comp-ind-qubits-1} and the fact that, $\mA$ violates~\eqref{eq:hc-bit-0}.\footnote{The end of the proof glosses over a detail: one needs to guarantee that the equation $d$ returned by $\mA$ is not $0$. While the lemma assumes that this is the case when the equation is measured directly on $\ket{\psi}$, here $\mA$ measures after $\ket{\psi}$ has already been measured using the observable $Z$. To show that the assumption that $d\neq 0^m$ with probability negligibly close to $1$ still holds one needs to use the ``collapsing'' property of $f_pk$, that we will introduce in the next lecture. For the time being we set aside this detail.}
+which can be seen by expanding $Z_b=(\Id+(-1)^b Z)/2$ for $b\in \{0,1\}$ and canceling cross-terms. Using~\eqref{eq:comp-ind-qubits-1} and the fact that, $\mA$ violates~\eqref{eq:hc-bit-0}.\footnote{The end of the proof glosses over a detail: one needs to guarantee that the equation $d$ returned by $\mA$ is not $0$. While the lemma assumes that this is the case when the equation is measured directly on $\ket{\psi}$, here $\mA$ measures after $\ket{\psi}$ has already been measured using the observable $Z$. To show that the assumption that $d\neq 0^m$ with probability negligibly close to $1$ still holds one needs to use the ``collapsing'' property of $f_{pk}$, that we will introduce in the next lecture.}
 \end{proof}
 
 
@@ -128,7 +139,7 @@ In the previous section we showed how to identify a ``qubit'' such that for any 
 \begin{enumerate}[label=(\textbf{F.4'})]
 \item\label{ass:f4b} For any $pk$ and any $y$ in the range of $f_{pk}$ the two preimages of $y$ take the form $(b,x_b)$ where $b\in\{0,1\}$ and $x_b \in \{0,1\}^{m(\lambda)-1}$. In particular, the function $b:\{0,1\}^m \to \{0,1\}$ returns the first bit of its input. 
 \end{enumerate}
-This assumption is mainly for convenience and holds for most constructions of claw-free functions, including the one that we sketch in the next lecture. Given a $2$-to-$1$ function family that satisfies~\ref{ass:f4b} the following lemma shows how a prover can behave in the protocol so that the extracted qubit defined in the previous section is a state $\ket{\psi}$ of its choice. 
+This assumption is mainly for convenience and holds for most constructions of claw-free functions, including the one that we sketch in the next lecture. Given a $2$-to-$1$ function family that satisfies~\ref{ass:f4b} the following lemma shows how a prover can behave in the protocol so that the extracted qubit defined in the previous section is a state $\ket{\varphi}$ of its choice. 
 
 \begin{lemma}\label{lem:oq-completeness}
 Let $\ket{\varphi}\in\C^2$ be any state. Then there is a way for the prover to behave in protocol~$\pq$ such that the prover is accepted with probability $1$ in the preimage test and moreover the extracted qubit satisfies $\rho_\reg{Q} = \proj{\varphi}$. 
@@ -172,7 +183,7 @@ If the verifier has not aborted at any of the steps $c=0$, she returns the real 
 \label{fig:protocol-mahadev-oq}
 \end{figure}
 
-The following proposition summarizes what we have achieved so far, a verification protocol for single-qubit Hamiltonians and a completely classical verifier. (Of course a simpler protocol would be to have the verifier classically do the computation themselves! The point is that this protocol is not too hard to extend to $n$ qubits, and we will see this later.) The protocol, which combines protocol $\pq$ with the Fitzsimons-Morimae verification protocol, is summarized in Figure~\ref{fig:protocol-mahadev-oq}. 
+The following proposition summarizes what we have achieved so far, a verification protocol for single-qubit Hamiltonians and a completely classical verifier. (Of course a simpler protocol would be to have the verifier classically do the computation themselves! The point is that this protocol is not too hard to extend to $n$ qubits, as we will see in the next lecture.) The protocol, which combines protocol $\pq$ with the Fitzsimons-Morimae verification protocol, is summarized in Figure~\ref{fig:protocol-mahadev-oq}. 
 
 \begin{proposition}\label{prop:mahadev-oq}
 Let $H = -\frac{J_X}{2} \sigma_X -\frac{ J_Z}{2}\sigma_Z$ be a single-qubit Hamiltonian and $\delta,\eps>0$ accuracy parameters. Then the verification protocol from Figure~\ref{fig:protocol-mahadev-oq} has the following properties:
@@ -183,7 +194,7 @@ Let $H = -\frac{J_X}{2} \sigma_X -\frac{ J_Z}{2}\sigma_Z$ be a single-qubit Hami
 Moreover, with the value of $N$ specified in the protocol in both cases it holds that $\Pr(|o-\Tr(H\rho)| > \delta)\leq \eps$.
 \end{proposition}
 
-\begin{remark}
+\begin{remark}\label{rk:prover-1}
 The assumption that the prover succeeds with probability negligibly close to $1$ in the protocol can be relaxed to a constant sufficiently close to $1$, where the distance to $1$ will affect the distance $|\Es{}[{o}] - \Tr(H\rho)|$. First we observe that a success probability negligibly close to $1$ is sufficient; this can be verified by going through the argument again, and nothing needs to be changed. Second, it is possible to show that any prover with success probability $1-\kappa$ for some $\kappa \geq 0$ can be transformed to a prover with success probability negligibly close to $1$, affecting the distribution of $o$ proportionately to $\kappa$. Intuitively, the new prover will test if the value $y$ that the old prover would have returned will lead to success on challenge $c=0$, in case that the test is actually executed by the verifier. This can be done efficiently by the prover by evaluating the pre-image condition on register $\reg{X}$. If this test fails then the new prover simply re-executes the old prover from scratch, until it is certain to achieve success. With probability negligibly close to $1$ this iterative procedure will stop in a polynomial number of steps, and using the ``pretty-good lemma'' it is possible to show that the prover's distribution of outcomes is affected by some $O(\sqrt{\kappa})$ in statistical distance. We omit the details. 
 \end{remark}
 

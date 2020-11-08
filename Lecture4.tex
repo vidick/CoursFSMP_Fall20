@@ -1,4 +1,5 @@
 \chapter{Testing a qubit under computational assumptions}
+\label{chap:computational-test}
 
 As we discussed in the first lecture, a simple interactive ``test of quantumness'' under computational assumptions consists in asking the device to factor a large integer $n$; under the assumption that factoring is hard for classical computers this test adequately distinguishes classical from quantum devices. 
 
@@ -37,7 +38,7 @@ Measuring the first register in the Hadamard basis yields a uniformly random $d\
 The main limitation of Simon's problem is that it only provides a \emph{black-box} separation: the quantum advantage holds under the assumption that the classical or quantum algorithms are allowed to evaluate the function $f$, but they are not given an explicit description of it. Showing that the separation still holds for an explicit choice of the function $f$ is much harder, because it is difficult to rule out some smart behavior for the classical algorithm that would take advantage of specific code for $f$; indeed, showing such a separation would be a major breakthrough in quantum algorithms. 
 
 This difficulty shouldn't prevent us from toying with the question: Can we identify natural candidates? For example one could take $f(x) = Ax$ for $A\in \F_2^{n\times n}$ a matrix of rank exactly $(n-1)$. In that case the kernel of $A$ is spanned by a single vector $s\in\F_2^n$, and $f$ is exactly $2$-to-$1$: $f(x_0)=f(x_1)$ if and only if $A(x_0-x_1)=0$, i.e. $x_0-x_1$ is either $0$ or $s$. 
-Unfortunately this $f$ is not a good candidate, because there happens to be an efficient classical algorithm that directly solves Simon's problem for it: Gaussian elimination.\footnote{In the next lecture we will see that a ``noisy'' version of $f$ provides a way forward.} The example shows that at a minimum we need a function $f$ that is $2$-to-$1$ but such that finding any colliding pair of inputs $(x_0,x_1)$ with $f(x_0)=f(x_1)$ is computationally difficult. In the next section we introduce some background from cryptography that will allow us to make this requirement precise. 
+Unfortunately this $f$ is not a good candidate, because there happens to be an efficient classical algorithm that directly solves Simon's problem for it: Gaussian elimination.\footnote{In lecture~\ref{chap:nqubit} we will see that a ``noisy'' version of $f$ provides a partial workaround.} The example shows that at a minimum we need a function $f$ that is $2$-to-$1$ but such that finding any colliding pair of inputs $(x_0,x_1)$ with $f(x_0)=f(x_1)$ is computationally difficult. In the next section we introduce some background from cryptography that will allow us to make this requirement precise. 
 
 \section{Computational assumptions}
 
@@ -65,7 +66,7 @@ the following conditions hold:
 \begin{itemize}
 \item $f_{pk}$ can be efficiently evaluated: there is a PPT procedure that given $pk$ and $x$ as inputs returns $f_{pk}(x)$.
 \item For every $\lambda\in \mathbb{N}$ and  $pk\in\{0,1\}^{k(\lambda)}$, $f_{pk}$ is $2$-to-$1$.
-\item For every PPT (resp. QPT) procedure $\mA$ the following holds: (the procedure $\mA$ is often personified as the ``adversary'' trying to demonstrate that the function family is \emph{not} claw-free) There exists a negligible\footnote{A function $\mu:\N\to\R$ is called {negligible} if for every polynomial $p$, $p(\lambda)\mu(\lambda)\to_{\lambda\to\infty} 0$.} function $\mu:\N\to\N$ such that for every $\lambda$, 
+\item For every PPT (resp. QPT) procedure $\mA$ the following holds: (the procedure $\mA$ is often personified as the ``adversary'' trying to demonstrate that the function family is \emph{not} claw-free) there exists a negligible\footnote{A function $\mu:\N\to\R$ is called {negligible} if for every polynomial $p$, $p(\lambda)\mu(\lambda)\to_{\lambda\to\infty} 0$.} function $\mu:\N\to\N$ such that for every $\lambda$, 
 \[ \Pr_{pk\leftarrow_R \{0,1\}^{k(\lambda)}}\big( (x_0,x_1)\leftarrow \mA(1^\lambda,pk):\; x_0\neq x_1,\; f_{pk}(x_0)= f_{pk}(x_1)\big) \,\leq\, \mu(\lambda)\;.\]
 \end{itemize}
 \end{definition}
@@ -125,11 +126,11 @@ Let $\mF$ be a function family and $\lambda\in\mathbb{N}$ a security parameter. 
 \item 
 \begin{enumerate}
 \item \emph{(pre-image test:)} In case $c=0$ the prover is expected to return an $x\in\{0,1\}^m$. The verifier accepts if and only if $f(x)=1$. 
-\item \emph{(equation test:)}In case $c=1$ the prover is expected to return a $d\in \{0,1\}^m$. The verifier uses $td$ to determine the two preimages $(x_0,x_1)$ of $y$ by $f_{pk}$. She accepts if and only if $d\cdot(x_0+ x_1)=0$. 
+\item \emph{(equation test:)} In case $c=1$ the prover is expected to return a $d\in \{0,1\}^m$. The verifier uses $td$ to determine the two preimages $(x_0,x_1)$ of $y$ by $f_{pk}$. She accepts if and only if $d\cdot(x_0+ x_1)=0$. 
 \end{enumerate}
 \end{enumerate}
 \rule[1ex]{16.5cm}{0.5pt}
-\caption{Protocol $\pq$, the computational test for a qubit. The protocol is parametrized by a function family~$\mF$.}
+\caption{Protocol $\pq$, the computational test for a qubit. The protocol is parametrized by a function family~$\mF$ satisfying assumptions~\ref{ass:f1} to~\ref{ass:f4}.}
 \label{fig:protocol-comp-test}
 \end{figure}
 

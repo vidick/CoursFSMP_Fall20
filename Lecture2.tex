@@ -77,6 +77,13 @@ Let $(\ket{\psi},X,Z)$  be a qubit on $\mH$. Then there exists a Hilbert space $
 \end{equation}
 \end{lemma}
 
+The following diagram illustrates the situation guaranteed by the lemma:
+\begin{equation}\label{diag:one-qubit}
+\begin{tikzcd}
+\mH \arrow{r}{V} \arrow[swap]{d}{X,\; Z} & \C^2 \otimes \mH' \arrow{d}{\sigma_X\otimes \Id,\; \sigma_Z\otimes \Id} \\
+\mH \arrow{r}{V} & \C^2 \otimes \mH'
+\end{tikzcd}
+\end{equation}
 Note that the lemma no longer says that $X$ is \emph{equal} to $\sigma_X \otimes \Id$ (under the isomprhism $\pi$), but only that \emph{it has the same action on the state}, up to the isometry $V$. In particular, it is now possible for $\mH$ to have odd dimension. This is necessary: for example, we can set
 \[ \ket{\psi} = \begin{pmatrix} 1 \\ 0 \\ 0 \end{pmatrix}\;,\quad X = \begin{pmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{pmatrix}\;,\quad Z =  \begin{pmatrix} 1 & 0 & 0 \\ 0 & -1 & 0 \\ 0 & 0 & 1 \end{pmatrix}\]
 and still satisfy Definition~\ref{def:qubit-2}.  Here, the third dimension has been added to the operators but since none of $\ket{\psi}$, $X\ket{\psi}$ or $Z\ket{\psi}$ has support on it it is ``inaccessible'' to any experiment that involves only this state and operators. However, it is good to verify that the definition is non-trivial, and in particular requires $\dim(\mH)\geq 2$. Indeed, suppose that $X\ket{\psi}$ and $Z\ket{\psi}$ are colinear. Then by~\eqref{eq:qubit-2-rigid-a} it follows that $(\sigma_X\otimes \Id)V\ket{\psi}$ and $(\sigma_Z\otimes \Id)V\ket{\psi}$ are colinear. As we saw in the previous lecture, due to $\{\sigma_X,\sigma_Z\}=0$ this is impossible. 
