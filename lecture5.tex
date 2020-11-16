@@ -1,4 +1,5 @@
 \chapter{Delegating Quantum Computations}
+\label{chap:delegation}
 
 \footnotetext{Some of the material for this lecture is taken from an overview of Mahadev's result written for a mathematical audience and published in the Bulletin of the AMS~\cite{vidick2020verifying}. Some of it is reproduced from lecture notes prepared for a winter school at UCSD:~\url{http://cseweb.ucsd.edu/~slovett/workshops/quantum-computation-2018/}.}
 
@@ -46,7 +47,7 @@ We end this section by defining a family of complexity classes associated with i
 \begin{definition}[Adapted from~\cite{aharonov2017quantum}]
 Given complexity classes $\mP$ and $\mQ$, $\IP[\mP,\mQ]$ is the class of (promise) languages $L$ such that there is a polynomial-time Turing machine $M$ that on input $1^n$ returns the description of classical circuits for the verifier $V_n$ in an interactive protocol with a prover $P$ such that 
 \begin{itemize}
-\item (Completeness:) There is a family of provers $\{P_n\}_{n\in \N}$ that lie in the class $\mP$ such that for all $x\in L$ the interaction of $V_{|x|}$ and $P_{|x|}$ on common input $x$ accepts with probability at least $\frac{2}{3}$.
+\item (Completeness:) There is a family of provers $\{P_n\}_{n\in \N}$ that lie in the class $\mP$ such that for all $x\in L_{yes}$ the interaction of $V_{|x|}$ and $P_{|x|}$ on common input $x$ accepts with probability at least $\frac{2}{3}$.
 \item (Soundness:) For any family of provers $\{P_n\}_{n\in \N}$ that lie in the class $\mQ$, for all $x\in L_{no}$ the interaction of $V_{|x|}$ and $P_{|x|}$ on common input $x$ accepts with probability at most $\frac{1}{3}$.
 \end{itemize}
 When the classes $\mP$ and $\mQ$ coincide we simply write $\IP[\mP]$ for $\IP[\mP,\mP]$. We use the standard notation $\IP = \IP[ \BPP, \ALL]$ with $\ALL$ the class of all languages (i.e.\ soundness is proves without any restriction on the prover). 
@@ -69,7 +70,7 @@ So all languages in $\BQP$ have \emph{classical} interactive proofs, with an eff
 Is $\BQP \subseteq \IP[\BQP,\ALL]$? In words, do all languages in $\BQP$ have single-server interactive proofs in which the client has the power of $\BPP$ and for which completeness holds with a $\BQP$ server and soundness holds against any server? 
 \end{oq}
 
-There are some  partial impossibility results~\cite{aaronson2017implausibility} on this question, as well as possibility results where completeness holds for provers that require more power than $\BQP$ but not necessarily the entire power of $\PSPACE$; see e.g.~\cite{aharonov2017quantum}. If, however, one allows slightly more power to the verifier then there are scenario in which the question is known to have a positive answer: 
+In~\cite{aaronson2017implausibility} some partial impossibility results are shown for the case of blind delegation protocols. If the inequality $\BQP \subseteq \IP[\BQP,\ALL]$ does hold it is likely to require protocols with polynomially many rounds of interaction, because constant-round protocols lie in AM and BQP is not believed to be in AM. Such protocols are known where completeness holds for provers that require more power than $\BQP$ but not necessarily the entire power of $\PSPACE$; see e.g.~\cite{aharonov2017quantum}. If, however, one allows slightly more power to the verifier then there are scenario in which the question is known to have a positive answer: 
 \begin{enumerate}
 \item The client has access to a limited quantum computer, such as the ability to prepare single qubits in arbitrary states and send them to the server, or receive single qubits from the server and make simple measurements on them;
 \item The client is allowed to interact with multiple quantum servers sharing entanglement.
@@ -92,7 +93,7 @@ The definition remains rather informal. For example, how should we formalize the
 The informal definition will be sufficient for our purposes. Note that in spite of being rather similar neither of the properties of verifiability or blindness is known to directly implies the other. In practice verifiability often follows from blindness by arguing, using ``traps'', that if a protocol is already blind then the server's trustworthiness can be tested by making it run ``dummy'' computations for which Alice already knows the output, without the server being able to distinguish whether it is asked to do a real or dummy computation. We will see an example of this technique later on. 
 
 \begin{oq}
-Is there a general transformation from any protocol satisfying blindness, to a protocol satisfying both verifiability and blindness? See~\cite{kashefi2017quantum} for a possible approach. 
+Is there a general transformation from any protocol satisfying blindness, to a protocol satisfying both verifiability and blindness? See~\cite{morimae2018blind} for how to achieve this by making use of post-hoc verification (cf.\  Section~\ref{sec:fm}), and~\cite{kashefi2017quantum} for another approach. 
 \end{oq}
 
 \begin{remark}
