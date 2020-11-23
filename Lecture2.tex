@@ -96,9 +96,9 @@ Note that the proof of the lemma shows something slightly stronger than is captu
 
 The proof that we gave easily extends to the approximate case. 
 
-\begin{exercise}
-Say that $(\ket{\psi},X,Z)$ is an $\eps$-approximate qubit if $\|\{X,Z\}\ket{\psi}\|\leq \eps$. Show that for $W\in \{X,Z\}$, 
-\[ \big\|\big( W - \pi (\sigma_W \otimes \Id )\pi^{-1} \big)\ket{\psi}\big\|^2 \,\leq\, O({\eps})\;.\] 
+\begin{exercise}\label{ex:approx-qubit}
+Say that $(\ket{\psi},X,Z)$ is an $\eps$-approximate qubit if $\|\{X,Z\}\ket{\psi}\|\leq \eps$. Show that there is an isometry $V: \mH \to \C^2 \otimes \mH'$ such that for $W\in \{X,Z\}$, 
+\[ \big\|\big( W - V^\dagger (\sigma_W \otimes \Id )V \big)\ket{\psi}\big\|^2 \,\leq\, O({\eps})\;.\] 
 \emph{[Hint: Use $2(1-\sin\theta) \leq \sqrt{4\cos^2\theta}$ for $\theta\in[0,\pi)$.]}
 \end{exercise}
 

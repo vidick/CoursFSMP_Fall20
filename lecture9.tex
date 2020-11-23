@@ -1,0 +1,228 @@
+\chapter{Compression of nonlocal games}
+
+
+\section{An overview of the proof of $\RE\subseteq \MIP^*$}
+
+
+\subsection{A cartoon version}
+\label{sec:cartoon}
+
+At the highest level our proof strategy is as follows. Recall from the previous lecture that for the case of classical protocols one can show the inclusion $\NEXP \subseteq \MIP$. While by itself this is already non-trivial, let's take as our starting point the assumption that we are able to show an analogous inclusion for quantum interactive proofs, i.e.\ $\NEXP \subseteq \MIP^*(2,1)$.\footnote{This inclusion is shown in~\cite{ito2012multi} for $5$ provers. The $2$-prover version follows from the work in~\cite{ji2020quantum}.} Observe that this inclusion can be recast as a form of delegation. Paraphrasing, the inclusion states that any language $L\in \NEXP$ has a multiprover interactive proof systems with quantum provers. Now for any Turing Machine $M$ the language $L_M $ that consists of all  $n$  such that there is a string $y\in\{0,1\}^*$ such that $M$ accepts $(n,a)$ in time at most $\exp(n)$ lies in $\NEXP$;\footnote{This formulation is a bit unusual due to the use of the letter $n$ to represent the input, which is usually called $x$; this is for later convenience.  Here $n$ is written in binary. Note that the time bound implies that without loss of generality $|y|\leq \exp(n)$.} moreover for some choices of $M$ it is $\NEXP$-complete.\footnote{An example would be to take $M$ the Turing machine that parses $n$ as an implicitly represented graph $n=(1^{n'},C)$ and expects $y$ to be an explicit coloring for the $2^{n'}$ vertices of the graph; see Section~\ref{sec:classical-mip}.} Thus there is an efficient reduction from Turing machines $M$ to verifiers $V$ such that for all integer $n$, on input $z$ such that $|z|=n$, 
+\begin{equation}\label{eq:cond-nexp-1}
+ \exists a\,:\quad\text{$M$ accepts $(z,a)$ in time $\leq \exp(n)$}
+\end{equation}
+ then $\omega^*(V_n(z))\geq \frac{2}{3}$, and if no such $a$ exists then $\omega^*(V_n(z))\leq \frac{1}{3}$. 
+Now suppose that we're able to achieve a somewhat stronger reduction, where for the starting point we replace the condition~\eqref{eq:cond-nexp-1} by
+\begin{equation}\label{eq:cond-nexp-2}
+\text{\emph{On average over} } x\sim \mU_N\,,\; \quad \Pr_x\Big( \exists a\,:\;M \text{ accepts $(z,x,a)$ in time $\leq \exp(n)$}\Big)\geq \frac{2}{3}\;,
+\end{equation}
+where $N=2^n$ and for every $n$, $\mU_N$ is the uniform distribution on $\{0,1\}^N$. (Suppose also that a symmetric condition holds for soundness.) This would be a form of delegation for (exponential-time) AM (``Arthur-Merlin'') protocols, where an AM protocol is one in which the verifier can send a uniformly random string as question to the prover before receiving the proof.  Note that the step we just made is highly non-trivial because of the introduction of a distribution on $x$; delegating randomized computations like this is hard because there is no easy means to verify that the computation is being performed with the ``right choice'' of the random string $x$---indeed, we need to make sure to detect cases where it might be that there exists $(x,a)$ such that $M$ accepts $(n,x,a)$, but it is still very unlikely to be the case when $x$ is chosen at random. As we will see later the use of quantum provers and entanglement will be useful to achieve this. 
+
+Let's do one last leap of faith and suppose that we have an even stronger reduction, that applies directly to exponential-size multiprover interactive proofs. Precisely, we'd replace the condition~\eqref{eq:cond-nexp-2} by
+\begin{equation}\label{eq:cond-nexp-3}
+\text{\emph{On avg over} } (x,y)\sim \mU_N\times \mU_N\,,\;  \Pr_{(x,y)}\Big(\exists (a,b) \,: \; M \text{ accepts $(z,x,y,a,b)$ in time $\leq \exp(n)$}\Big)\geq \frac{2}{3}\;,
+\end{equation}
+where in addition we'd require that $(a,b)$ are generated locally by quantum provers sharing entanglement, such that the provers are given $x$ and $y$ respectively; formally, given $(x,y)$ the pair $(a,b)$ should be distributed as $\bra{\psi} A^x_a \otimes B^y_b \ket{\psi}$ for some state $\ket{\psi}$ (independent of $(x,y)$) and POVM $\{A^x_a\}$ and $\{B^y_b\}$. Once again we'd also require a symmetric condition with probabilities $\leq \frac{1}{3}$ for soundness. 
+
+Let's call the resulting reduction a ``compression'' procedure: it takes as input an exponential-time  verifier $V$ and returns a polynomial-time verifier $V^\compr$ that has the same completeness and soundness properties: if there is a good strategy for $V_n$ there is also one for $V\compr_n$ and vice-versa. Then I claim that by iterating this compression procedure we could obtain progressively stronger inclusions, from $\EXP \subseteq \MIP^*$ to $\EEXP\subseteq \MIP^*$ to .... any time complexity that is a finite tower of exponentials.\footnote{We could do the same argument for non-deterministic time complexities, but it is easier to present in the deterministic case. The place where we do need non-determinism is for the compression procedure.}
+Recall that for well-chosen $M$, the problem of given an integer $n$, does $M$ halt in at most $2^n$ steps is $\EXP$-complete. Now suppose that e.g. we have a family of verifiers $\{V_n\}$, implicitly depending on $M$, such that $\omega^*(V_n) \geq \frac{2}{3}$ if $M$ halts in $\leq 2^n$ steps, and $\omega^*(V_n) \leq \frac{1}{3}$ otherwise; such a family follows from $\EXP \subseteq \MIP^*(2,1)$. Now define $\{V^\compr_n\} = \compr(\{V_{2^n}\})$. Then by definition   $\omega^*(V^\compr_n) \geq \frac{2}{3}$ if $\omega^*(V_{2^n}) \geq \frac{2}{3}$ if $M$ halts in $\leq 2^{2^n}$ steps, and similarly $\omega^*(V^\compr_n) \leq \frac{1}{3}$ otherwise. Thus $\EEXP\subseteq \MIP^*$. Iterating this procedure and stretching things a little bit, this would give us the inclusion $\TIME(T(n))\subseteq \MIP^*$ for any computable function $T$. And then taking the ``limit'', we'd get $\RE\subseteq \MIP^*$...?
+
+Obviously there's a lot of moving pieces in this description. The goal in this lecture is to make them sufficiently precise as to be believable, and eventually arrive at a core ``nugget'' that encapsulates the key step that needs to be proven---which we'll do in the next lecture. For now we focus on, first, setting things up so that the above sketch can be made more precise, and second, discussing in more detail the ``compression'' procedure, which is the key part where the use of quantum provers is essential. 
+
+
+\subsection{The Halting problem}
+
+Recall from the last lecture that the two main consequences of $\RE\subseteq\MIP^*$ that we discussed, negative answers to Tsirelson's problem and to Connes' Embedding Conjecture, both follow from the fact that the problem ``Given a two-player one-round game $G$ such that $\omega^*(G) \geq \frac{2}{3}$ or $\omega^*(G) \leq \frac{1}{3}$, which is the case?'' is undecidable. In this lecture we will show that there is a computable map $\mF$ from Turing Machines $M$ to games $G=G_M$ such that if $M$ halts then $\omega^*(G)\geq \frac{2}{3}$, whereas if $M$ does not halt then $\omega^*(G) \leq \frac{1}{3}$. To argue that this indeed shows that the aforementioned problem is undecidable, we recall the proof that the Halting problem is undecidable. 
+
+\begin{definition}
+The language $L_\halt$ is the set of all $x\in\{0,1\}^*$ such that 
+ $x$ is the description of a Turing Machine $M$ such that $M$, when it is executed on an empty tape, eventually halts. 
+\end{definition}
+
+For convenience we use the notation $\ol{M}\in\{0,1\}^*$ to denote the description of a Turing Machine $M$, using some canonical representation. Recall that there exists a ``universal'' Turing machine $\mU$ that on input $\ol{M}$ and $x$ simulates the execution of $M$ on input $x$. 
+
+\begin{lemma}\label{lem:halt}
+The language $L_\halt$ is undecidable. 
+\end{lemma}
+
+\begin{proof}
+Suppose for contradiction that there exists a Turing Machine $A$ such that given as input $\ol{M}$, $A$ halts with ``YES'' in case $M$ halts on the empty tape, and $A$ halts with ``NO'' otherwise. Now consider the following Turing Machine $B$. When run on an empty tape, $B$ first executes $A$ on $\ol{B}$. If $A$ halts with ``YES'' then $B$ enters an infinite loop. If $A$ halts with ``NO'' then $B$ halts with ``YES''. Does $B$ halt? We have reached a contradiction, therefore $A$ does not exist. 
+\end{proof}
+
+Note that in the proof of Lemma~\ref{lem:halt} we designed a Turing Machine $B$ that at some point performs an instruction that depends on its own ``source code'' $\ol{B}$. That this is allowed is a consequence of Kleene's recursion theorem, which is basically a generalization of the standard diagonalization argument. We will use this possibility again later. 
+
+
+\subsection{Compression}
+
+We make more precise what we need of the magical ``compression procedure'' discussed in Section~\ref{sec:cartoon}. First we introduce a restricted class of verifiers. 
+
+\begin{definition}
+A \emph{normal form verifier} is a Turing Machine $V$ that on input $n$ returns the description of a Turing Machine $R_n$ (the ``referee,'' or ``decision procedure'') that on input $(x,y,a,b)\in \{0,1\}^{4n}$ returns a value $d\in \{0,1\}$. To $R_n$ we associate a two-player one-round game $G_n$ whose question and answer sets are $X=Y=A=B= \{0,1\}^n$ and such that the question distribution $\pi$ is uniform on $\{0,1\}^n \times \{0,1\}^n$ and the referee predicate is given by $R_n$. 
+
+ We let $\TIME_V(n)$ be the worst-case running time of $R_n$ over all inputs $(x,y,a,b)$. If $\TIME_V(n) \leq (\lambda n)^\lambda$ for some integer $\lambda \geq 1$ and all $n\geq 1$ then we say that $V$ is \emph{$\lambda$-bounded}. 
+\end{definition}
+
+Note that in the definition we fixed the question distribution used for the game $G_n$ to the uniform distribution. At this stage this is mostly for convenience. Later we will realize that this is too restrictive, and so one should bear in mind that the definition can be generalized to allow various classes of distributions, where the key point is that the distribution should be fixed and independent of $V$. 
+
+We need one last definition.
+
+\begin{definition}
+For a two-player one-round game $G$ and a probability $p\in[0,1]$ let $\mE(G,p)$ denote the smallest integer $d\geq 1$ such that there exists a strategy $(\ket{\psi},\{A^x_a\},\{B^y_b\})$ for the players in $G$ that has success probability at least $p$ and such that $\ket{\psi} \in \C^d \otimes \C^d$. If no such strategy exists, then $\mE(G,p) = \infty$. 
+\end{definition}
+
+For example, for the Magic Square game (Section~\ref{sec:ms-game}) it is possible to show that $\mE(G,1)=4$ (two qubits per player), and in fact there is a $c<1$ such that $\mE(G,p)=4$ for all $p\in[c,1]$. For a game that has a perfect classical strategy we have $\mE(G,p)=1$ for all $p\in[0,1]$. 
+
+Let's make the following specification for a compression procedure. 
+
+\begin{claim}\label{claim:compression}
+There is a polynomial-time computable mapping $\compr$ that takes as input a Turing machine description $\ol{V}$ and an integer $\lambda$ written in unary and returns a Turing machine description $\ol{V^\compr} = \compr(\ol{V},\lambda)$ such that the following conditions hold: 
+\begin{itemize}
+\item[(a)] $V^\compr$ is always a normal form verifier such that $\TIME_{V^\compr}(n) \leq p_\compr(\lambda + n)$, for some universal polynomial $p_\compr$ independent of $V$.
+\item[(b)] If $V$ is a normal form $\lambda$-bounded verifier then for every $n\geq 1$ letting $N=2^n$ the following hold:
+\begin{itemize}
+\item[(b.i)] If $\omega^*(R_N)=1$ then $\omega^*(R^\compr_n)=1$. 
+\item[(b.ii)] $\mE(G^\compr_n,\frac{1}{2}) \geq \max\big\{\mE(G_N,\;\frac{1}{2}),N\big\}\;.$
+\end{itemize}
+\end{itemize}
+\end{claim}
+
+The key point about Claim~\ref{claim:compression} is that the running time of $R_n^\compr$ can be much smaller than that of $R_N$, yet it preserves essential properties of it, stated in (b.i) and (b.ii). 
+
+We make a few comments on the requirements stated in the claim. First of all, even though eventually we only need to create a \emph{computable} mapping $\mF$ from Turing Machines to games, it will be important that here $\compr$ is required to run in polynomial time. Second, it will also be essential that for any input $(\ol{V},\lambda)$ to $\compr$ the output $\ol{V^\compr}$ is the description of a time-bounded verifier. Note that this is not hard to enforce in practice by hard-coding some kind of time-out mechanism in the definition of $V^\compr$. Finally, observe that condition (b.ii) states something a little stronger (strictly speaking, incomparable) than the ``soundness preservation'' condition we considered in Section~\ref{sec:cartoon}. Indeed the fact that we are able to make a statement about entanglement will play an important role in the final argument. (On the other hand, that the conditions apply to $N=2^n$ as opposed to e.g.\ $N=n+1$ is not important; since it is what comes out of the proof we keep it here---what matters is that $V_n^\compr$ reproduces properties of $V_N$ for some $N>n$ while having complexity comparable to $V_n$, not $V_N$.) Finally, note that due to condition (b) running $\compr$ on a trivial input that always accepts already yields an interesting family of games: due to (b.i) we will have $\omega^*(V^\compr_n)=1$ for all $n$, and due to (b.ii) achieving any value larger than $\frac{1}{2}$ will necessarily require a quantum state of local dimension at least $N=2^n$. 
+
+These observations show that designing a procedure $\compr$ that fulfills all conditions will likely not be an easy task. Nevertheless, let's put that task aside for the time being and see how the desired reduction can be completed assuming the validity of Claim~\ref{claim:compression}.
+
+\subsection{A self-referential verifier}
+\label{sec:self-ref}
+
+Fix a Turing Machine $M$ and an integer $\lambda \geq 1$ and consider the following normal form verifier $V=V_{M,\lambda}$, that implicitly depends on $M$ and $\lambda$ (and in fact is efficiently computable from the pair $(\ol{M},\lambda)$). For any $n\geq 1$, we describe the decision procedure $R_n$ using high-level ``pseudocode''. Given $(x,y,a,b) \in \{0,1\}^{4n}$, $R_n$ does the following:
+\begin{enumerate}
+\item $R_n$ simulates $M$ on the empty tape for $n$ steps. If $M$ halts then $R_n$ accepts (i.e.\ it returns the value `$1$', irrespective of its inputs $(x,y,a,b)$. Otherwise, if $M$ has not halted in $n$ steps then $R_n$ proceeds to the next item.
+\item $R_n$ computes $\ol{V^\compr} = \compr(\ol{V},\lambda)$.
+\item $R_n$ returns the decision $(R^\compr)_n(x,y,a,b) \in \{0,1\}$. 
+\end{enumerate}
+Note that in giving this high-level description of a Turing Machine $V$, that on input $1^n$ returns the description $\ol{R_n}$, we have referred to the description $\ol{V}$ itself. That this is possible, i.e.\ $V$ is a well-defined Turing Machine, is a consequence of Kleene's recursion theorem---this is similar to the self-referential call we made for the definition of algorithm $B$ in the proof of Lemma~\ref{lem:halt}. 
+
+The following three claims establish the key properties of this construction. 
+
+\begin{claim}\label{claim:lambda-bound}
+For any Turing Machine $M$ there is an integer $\lambda \geq 1$ which is computable from $|M|$ and such that $V$ is $\lambda$-bounded.
+\end{claim}
+
+\begin{proof}
+By definition $V$ on input $1^n$ returns a decision procedure $R_n$ that takes four inputs of length $n$ each, so it is a normal form verifier. It remains to estimate its running time. First we estimate $|\ol{V}|$. Clearly, the actions to be performed in each of the three steps can be described using $\poly(|\ol{M}|,\lambda)$ bits. Note that the description $\ol{\compr}$ does not depend on anything, so its size is a constant. 
+
+Next we estimate the running time of $R_n$. 
+The first step, the simulation of $M$ for $n$ steps, takes time $p_1(n, \ol{M})$ for some universal polynomial $p_1$. The second step, the computation of $\ol{V^\compr}$, takes time $p_2(\ol{V},\lambda)$, for some universal polynomial $p_2$ that bounds the running time of $\compr$. The last step, the evaluation of $R_n^\compr(x,y,a,b)$, takes time $p_\compr(\lambda+n)$ by property (a) in Claim~\ref{claim:compression}.
+
+Overall the running time is $\poly(n,\ol{M},\lambda)$ for some universal polynomial. This can be bounded above by the expression $(\lambda n)^\lambda$ for all $n\geq 1$ provided $\lambda$ is large enough compared to $\ol{M}$. 
+\end{proof}
+
+For the remaining two claims we fix $\lambda$ to the value promised in Claim~\ref{claim:lambda-bound} and let $\{R_n\}$ and $\{G_n\}$ be the family of decision procedures and games respectively implied by the verifier $V$ specified from $M$ and $\lambda$. 
+
+\begin{claim}\label{claim:m-halt-1}
+Suppose that $M$ halts on an empty input tape. Then $\omega^*(R_n) = 1$ for all $n$. 
+\end{claim}
+
+\begin{proof}
+Let $T$ be the number of steps taken by $M$ to halt. Then for all $n\geq T$ the decision procedure $R_n$ always accepts its inputs at step 1. Therefore $\omega^*(R_n)=1$ for all $n\geq T$. Now we show by (strong) downwards induction from $m=T$ to $1$ that $\omega^*(R_m)=1$. We showed the induction hypothesis for $m=T$ already. Suppose it true up to some value $m>1$. Then since $M$ does not halt in $(m-1)$ steps, the decision procedure $R_{m-1}$ proceeds to step 2.\ and executes $(R^\compr)_{m-1}$. Since $2^{m-1} > m-1$, it follows from the induction hypothesis that $\omega^*(R_{2^{m-1}})=1$. Using property (b.i) in Claim~\ref{claim:compression} we have that $\omega^*(R_{{m-1}})=1$, as desired. 
+\end{proof}
+
+\begin{claim}\label{claim:m-halt-2}
+Suppose that $M$ does not halt. Then $\omega^*(R_n)\leq \frac{1}{2}$ for all $n\geq 1$. 
+\end{claim}
+
+\begin{proof}
+We show that $\mE(G_n,\frac{1}{2})=\infty$ for all $n\geq 1$. This shows that no finite strategy can achieve a success probability larger than $\frac{1}{2}$, and taking the limit that $\omega^*(R_n)\leq \frac{1}{2}$, as desired. Since $M$ does not halt, for any $n$, $R_n$ proceeds to step 2. and returns the desision of $R^\compr_N$ where $N=2^n$. By property (b.ii) in Claim~\ref{claim:compression} it follows that for all $n\geq 1$,
+\[ \mE(G_n,\frac{1}{2}) \geq \max\Big\{\mE\big(G_N,\;\frac{1}{2}\big),N\Big\}\;.\]
+By straightforward induction, $\mE(G_n,\frac{1}{2}) \geq T$ for any integer $T$, so it must be $\infty$. 
+\end{proof}
+
+
+\subsection{A game for the halting problem}
+
+We now describe the reduction $\mF$. On input $\ol{M}$, $\mF$ first computes the integer $\lambda$ whose existence is promised in Claim~\ref{claim:lambda-bound}. Then $\mF$ computes a description of the decision procedure $R_1$ from the start of Section~\ref{sec:self-ref}, based on $\ol{M}$ and $\lambda$. Finally, $\mF$ returns a description of the associated game $G=G_1$.\footnote{It is interesting that ultimately we only need $G_1$, but to arrive at constructing it we had to consider infinite families of games.} 
+
+Suppose first that $M$ halts. Then by Claim~\ref{claim:m-halt-1} it holds that  $\omega^*(G)=1$. Suppose now that $M$ does not halt. It follows from Claim~\ref{claim:m-halt-2} that $\omega^*(G)\leq \frac{1}{2}$. 
+This completes the reduction.\footnote{While we promised to obtain a separation between values $\frac{2}{3}$ and $\frac{1}{3}$, we only obtained one between $1$ and $\frac{1}{2}$. There is nothing in the line of argument that is special about $\frac{1}{2}$ and we could have done the same replacing it by $\frac{1}{3}$, giving us an even stronger reduction than desired. In general, the values $\frac{2}{3}$ and $\frac{1}{3}$ can be amplified towards $1$ and $0$ respectively by applying techniques from parallel repetition; see e.g.~\cite{yuen2016parallel}.}
+
+\begin{remark}
+It is worth pausing to appreciate the significance of this reduction. Beyond the stated inclusion of complexity classes, it makes quite a striking statement about the complexity that may lurk behind simple, finite, observable phenomena in quantum mechanics. What the existence of $\mF$ states is that for \emph{any} problem that can be encoded in the halting of a Turing machine there is a game, that moreover is easily computable from the Turing machine, that ``witnesses'' this fact. Consider for example the Riemann Hypothesis (RH). There is a simple Turing Machine $M$ that halts if and only if RH is provable in ZFC (Zermelo-Fraenkel set theory with the axiom of choice included). Indeed $M$ simply enumerates over all possible proofs in ZFC and checks if they are (i) valid proofs and (ii) prove RH. Moreover, the Turing machine $M$ is large, but not absurdly so; probably a few millions of characters are more than enough. This means that we can, in principle but also in practice, write a simple computer program that will return the rules for a moderately-sized nonlocal game $G=G_{RH}$ such that $\omega^*(G)=1$ if and only if RH is provable in ZFC. Isn't this amazing?
+\end{remark}
+
+\begin{remark}
+A natural question is what is the \emph{commuting value} $\omega_{com}$ of the games $G=G_{M,\lambda}$. Naturally this value is always at least $\omega^*(M)$, and moreover for \emph{some} infinite family of $M$ it must be the case that $\omega_{com}(G)=1$ even if $M$ does not halt (and hence $\omega^*(G) \leq \frac{1}{2}$), as otherwise using algorithm $C$ from the previous lecture we would be able to solve the Halting problem. We do not know if $\omega_{com}(G)=1$ for all games $G$ in the range of the reduction $\mF$. 
+\end{remark}
+
+\section{The compression procedure}
+
+Based on the work completed in the previous section it ``only'' remains to show the existence of an appropriate compression procedure, that satisfies the requirements of Claim~\ref{claim:compression}. As it turns out this is quite a tall order, and we won't be able to give full details here. Instead we very roughly describe how the design of the compression procedure eventually boils down to a much more manageable ``nugget'' that takes the form of a nonlocal game with good ``self-testing'' properties.
+
+\subsection{A test for $n$ qubits}
+
+In the next lecture we will give a proof of the following. 
+
+\begin{claim}\label{claim:pbt-1}
+There is a family of games $\{G_n\}_{n\geq 1}$ such that for each $n\geq 1$, the game $G_n$ tests $n$ qubits. 
+\end{claim}
+
+We gave a quite succinct statement for the claim; let's unpack it a little bit. First, by ``the game $G_n$ tests $n$ qubits'' we mean the following: there is a constant $c<1$, independent of $n$, such that for any $n$ and any two players that succeed in the game $G_n$ with probability at least $c$, each player must ``have $n$ qubits''. Recalling our definition of $n$ qubits what we mean by this is that to each strategy we should be able to associate $2n$ observables $(X_i,Z_i)_{i=1,\ldots,n}$ such that whenever the strategy succeeds with high enough probability the $(X_i,Z_i)$ are ``close'' to satisfying the appropriate commutation and anti-commutation relations, where closeness is measured in the right state-dependent norm. As it turns out, for the construction that we give next time a stronger condition will hold, giving us the following somewhat more formal variant of Claim~\ref{claim:pbt-1}.
+
+\begin{claim}\label{claim:pbt-2}
+There is a family of games $\{G_n\}_{n\geq 1}$ with the following properties. For each $n\geq 1$, in the game $G_n$ there are questions of the form $(X,a)$ and $(Z,b)$ where $X,Z$ are labels and $a,b\in\{0,1\}^n$ such that the answer expected from a player upon such a question is a single bit. In addition there are two questions $X$ and $Z$ such that the expected answer on such a question is $n$ bits long. Furthermore, for each $n\geq 1$ and $\eps>0$, for any strategy $(\ket{\psi},\{A^x_a\},\{B^y_b\})$ that succeeds with probability tat least $1-\eps$ in the game there is an isometry $V_A:\mH_\reg{A} \to (\C^2)^{\otimes n} \otimes \mH'_{\reg{A}}$ such that, if $X(a)$, $Z(b)$ and $\{A^X_a\}_a,\{A^Z_b\}_b$ are Alice's observables and POVM on the aforementioned questions then 
+\begin{align*}
+ \max\Big\{&\Es{a} \big\| (V_A X(a) - (\sigma_X(a)\otimes \Id_{\reg{A}'}) V_A )\otimes \Id_\reg{B} \ket{\psi} \big\|^2\;,\\
+&\quad \Es{b}\big\| (V_A Z(b) - (\sigma_Z(b)\otimes \Id_{\reg{A}'}) V_A )\otimes \Id_\reg{B} \ket{\psi} \big\|^2 \Big\} \,\leq\, O(\eps^d)\;,
+\end{align*}
+where the expectation is taken over uniformly random $a,b\in\{0,1\}^n$, and letting $\{\sigma^X_a\}_a$ and $\{\sigma^Z_b\}$ denote POVMs representing an $n$-qubit measurement in the Hadamard and computational basis respectively,
+\begin{align*}
+ \max\Big\{& \sum_a \big\| (V_A A^X_a  - (\sigma^X_a\otimes \Id_{\reg{A}'}) V_A )\otimes \Id_{\reg{B}}\ket{\psi} \big\|^2 \;,\\
+&\quad  \sum_b \big\| (V_A A^Z_b  - (\sigma^Z_b\otimes \Id_{\reg{A}'}) V_A )\otimes \Id_{\reg{B}}\ket{\psi} \big\|^2 \Big\} \,\leq\, O(\eps^d)\;,
+\end{align*}
+for some universal constant $d>0$. A similar statement holds for Bob's observables. Finally, there is a state $\ket{aux} \in \mH'_A \otimes \mH'_B$ such that 
+\[ \big\| V_A \otimes V_B \ket{\psi} - \ket{\phi^+}^{\otimes n} \ket{aux} \big\|^2 \,\leq\, O(\eps^d)\;,\]
+where recall that $\ket{\phi^} \in \C^2 \otimes \C^2$ denotes the state of an EPR pair. 
+\end{claim}
+
+The important part of the claim is that the game $G_n$ allows us to ``command'' either player to measure $n$ halves of shared EPR pairs in the computational or Hadamard basis, and that whenever asked to do so --- they faithfully do it, up to a local isometry. What is particularly non-trivial about the claim as we stated it is the fact that the stated error bounds do not depend on $n$, and this crucial for its usefulness. 
+ We will give the proof of Claim~\ref{claim:pbt-2} in the next lecture; let's now verify that it encapsulates (almost...) all that we need to design the compression procedure. 
+
+
+\subsection{How to delegate a nonlocal game}
+
+Recall that the goal of the compression procedure is to turn a  verifier Turing Machine $V$ given as input into a verifier Turing Machine $V^\compr$ such that $V^\compr_n$ ``simulates'' $V^\compr_N$ for $N=2^n$, in the sense described in Claim~\ref{claim:compression}. Let's start by reviewing how the game specified by $V_N$ proceeds, assuming $V_N$ is normal form:
+\begin{enumerate}
+\item Generate a pair of questions $(X,Y)\in \{0,1\}^N \times \{0,1\}^N$ uniformly at random;
+\item Execute each prover's strategy to obtain answers $(A,B)\in\{0,1\}^N \times \{0,1\}^N $;
+\item Return $V_N(X,Y,A,B)$.
+\end{enumerate}
+Here, the first and last steps are executed by $V_N$ and take time polynomial in $N$, hence exponential in $n$. The second step is executed by the provers and can take an arbitrary amount of time. The main idea for designing $V_n^\compr$ is to ``delegate'' these steps to the provers and limit the verifier's computation to some form of ``verification'' that the provers are performing the right computation: 
+\begin{enumerate}
+\item Generate a pair of questions $(x,y)\in \{0,1\}^n \times \{0,1\}^n$ uniformly at random.
+\item Provers do the following:
+\begin{enumerate}
+\item Locally generate $X\in\{0,1\}^N$ and $Y\in \{0,1\}^N$ respectively;
+\item Execute original prover's strategy to obtain answers $(A,B)$;
+\item Return ``proofs'' $a$ and $b$ respectively that (i) $X$ and $Y$ have been selected uniformly at random; (ii) $A$ and $B$ can be obtained locally; (iii) $V_N(X,Y,A,B)=1$.
+\end{enumerate}
+\item Given $(x,y,a,b)$, check that $(a,b)$ are a valid proof of (i), (ii) and (iii). 
+\end{enumerate}
+As it turns out the most delicate step in implementing this scheme is the verification of (i). Indeed this is where we will use the fact that the provers can be forced to share entanglement in an essential way. The verification of (ii) would be automatic if we asked each prover to report $A$ and $B$ respectively; because we only ask them for shorter ``proofs'' $a$ and $b$ this requires more care, but it is not a real problem. Finally, while the verification of (iii) requires quite some work at its heart it is not substantially different from the efficient verification of an exponential-time computation; here again the part that is a bit delicate is that the inputs $X,Y,A,B$ to the computation are not known explicitly to the verifier but only through the ``proofs'' of items (i) and (ii). 
+
+Focusing on (i) now, observe that the game $G_N$ from Claim~\ref{claim:pbt-2} provides us with the means to ``force'' the provers to generate uniformly random $X$ and $Y$: we simply send them, say, question $Z$ in the game, and request that they use the outcome obtained as their $X$ and $Y$ respectively. 
+
+There is one good thing about this, and many bad things. The good thing is that based on Claim~\ref{claim:pbt-2} we know that if the provers succeed in the game $G_N$, a condition which we can imagine checking separately (meaning that with some probability the verifier $V^\compr_n$ executes $G_N$ and accepts if and only if accepts), then when one prover is sent the  label $Z$ and the other the label $X$ they obtain outcomes $a,b$ which are statistically close to uniformly distributed and independent from each other; both facts are a consequence of the fact that computational and Hadamard basis measurements on two halves of the same EPR pair yield independent uniformly distributed outcomes. 
+
+As for the bad things, we point out a few of them:
+\begin{itemize}
+\item While we can request the provers to perform computational basis measurements and thereby obtain uniformly random $X,Y$, it is unclear how we can require that these are precisely the inputs that they use for the evaluation of $V_N$, unless they report $X,Y$ to us---which is not possible since these strings are too long;
+\item Furthermore, $X,Y$ are not uniformly random but only close to being so---we need to make sure that this possible error cannot be maliciously used by the provers to too large an extent;
+\item The game $G_N$ as we described it involves $N$-bit long questions; however, the verifier $V^\compr_n$ is only allowed $n$-bit long questions;
+\item We have not examined the running time of $V^\compr_n$: this should be bounded by some polynomial in $n$ and $\lambda$, and independent of the running time of $V_N$. 
+\end{itemize}
+These difficulties are substantial difficulties. They can all be overcome by introducing a more involved variant of Claim~\ref{claim:pbt-2} that is based on the use of what are called ``low-degree tests' in complexity theory. Informally, this consists in combining the presentation of $V^\compr$ that we gave with ideas from the theory of error-correcting codes so as to (a) reduce the complexity of the referee in the game, and (b) ensure that the little information that the players provide about $X,Y$ is sufficient to ``lock'' them into using $X,Y$, or to the least strings that are sufficiently close to them, in the other steps (i.e.\ the proofs of items (ii) and (iii)). We will not be able to dive into these difficulties here, and instead allocate the last lecture to a proof of Claim~\ref{claim:pbt-2}. 
+
+\begin{remark}
+For the entire lecture we assumed that we could work with verifiers that use a uniform distribution on their questions. In fact, this is provably not sufficient, and once must necessarily use more complex question distributions. For this reason the fact that Claim~\ref{claim:pbt-2} allows us to certify measurements in either computational or Hadamard basis for the provers is crucial: in this way we are able not only to request that they generate uniform independent $(X,Y)$, by sending them different bases, but also uniform \emph{equal} $(X,Y)$, by sending them the same basis. By introducing further variations on this theme it is possible to ``command'' the provers to generate $(X,Y)$ according to quite a broad class of distributions. 
+\end{remark}
+

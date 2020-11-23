@@ -174,7 +174,7 @@ The statement of Lemma~\ref{lem:n-qubit-c2} can be reformulated in the language 
 An important theme of this course will be that the objects that we observe and manipulate in our ``protocols'' or ``experiments'' generally cannot be assumed to be perfectly ``clean'' or ``noise-free''. In this respect, the following exercise is a simple test that we ought to make on our definition; furthermore, it is a good exercise to practice the use of the CS decomposition. 
 
 \begin{exercise}
-Suppose that $X$ and $Z$ are binary observables on $\mH$ such that $\|\{X,Z\}\|\leq \eps$ for some $\eps \geq 0$. Show that there exists a qubit $(\mH,X',Z')$ such that $\max\{\|X-X'\|,\|Z-Z'\|\} \leq \delta(\eps)$. State the best dependence $\delta$ that you can get. 
+Suppose that $X$ and $Z$ are binary observables on $\mH$ such that $\|\{X,Z\}\|\leq \eps$ for some $\eps \geq 0$, where $\|\cdot\|$ denotes the operator norm (largest singular value). Show that there exists a qubit $(\mH,X',Z')$ such that $\max\{\|X-X'\|,\|Z-Z'\|\} \leq \delta(\eps)$. State the best dependence $\delta$ that you can get. 
 \end{exercise} 
 
 The exercise can be extended to consider $n$ approximate qubits, but the proof is more delicate as some work is needed to keep the errors under control. The following is shown in~\cite{chao2017overlapping}. 
